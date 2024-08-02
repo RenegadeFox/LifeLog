@@ -9,35 +9,40 @@ db.serialize(() => {
       id INTEGER PRIMARY KEY,
       name TEXT,
       toggle BOOLEAN DEFAULT 0,
-      emoji TEXT
+      start_label TEXT,
+      end_label TEXT
     )`
   );
 });
 
 // Create a new activity type in the database
-export const createActivityType = (name, toggle = false, emoji = "") => {
+export const createActivityType = (name, toggle, startLabel, endLabel) => {
+  const newToggle = toggle || 0;
+  const newStartLabel = startLabel || "";
+  const newEndLabel = endLabel || "";
   return new Promise((resolve, reject) => {
     db.run(
-      `INSERT INTO activity_types (name, toggle, emoji) VALUES (?, ?, ?)`,
-      [name, toggle, emoji],
+      `INSERT INTO activity_types (name, toggle, start_label, end_label) VALUES (?, ?, ?, ?)`,
+      [name, newToggle, newStartLabel, newEndLabel],
       function (err) {
         if (err) reject(err);
         resolve(this.lastID);
         console.log(`${colorize.green("Created activity type")}: "${name}"
           ${colorize.bold("ID")}: "${this.lastID}"
-          ${colorize.bold("Toggle")}: "${toggle}"
-          ${colorize.bold("Emoji")}: "${emoji}"`);
+          ${colorize.bold("Toggle")}: "${newToggle}"
+          ${colorize.bold("Start Label")}: "${newStartLabel}"
+          ${colorize.bold("End Label")}: "${newEndLabel}"`);
       }
     );
   });
 };
 
 // Update an existing activity type in the database by its ID
-export const updateActivityType = (id, name, toggle, emoji) => {
+export const updateActivityType = (id, name, toggle, startLabel, endLabel) => {
   return new Promise((resolve, reject) => {
     db.run(
-      `UPDATE activity_types SET name = ?, toggle = ?, emoji = ? WHERE id = ?`,
-      [name, toggle, emoji, id],
+      `UPDATE activity_types SET name = ?, toggle = ?, start_label = ?, end_label = ? WHERE id = ?`,
+      [name, toggle, startLabel, endLabel, id],
       function (err) {
         if (err) reject(err);
         resolve(this.changes);
@@ -46,7 +51,8 @@ export const updateActivityType = (id, name, toggle, emoji) => {
             ${colorize.bold("ID")}: "${id}"
             ${colorize.bold("New Name")}: "${name}"
             ${colorize.bold("New Toggle")}: "${toggle}"
-            ${colorize.bold("New Emoji")}: "${emoji}"`
+            ${colorize.bold("New Start Label")}: "${startLabel}"
+            ${colorize.bold("New End Label")}: "${endLabel}"`
         );
       }
     );

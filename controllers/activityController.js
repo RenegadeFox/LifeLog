@@ -10,8 +10,17 @@ import {
 export const logActivity = async (req, res) => {
   const { type_id, status, description, timestamp } = req.body;
 
+  // Convert the ISO 8601 timestamp to a Unix timestamp
+  const date = new Date(timestamp);
+  const unixTimestamp = date.getTime() / 1000;
+
   try {
-    const id = await createActivity(type_id, status, description, timestamp);
+    const id = await createActivity(
+      type_id,
+      status || "none",
+      description,
+      unixTimestamp
+    );
     res.status(201).send({ id });
   } catch (err) {
     res.status(500).send(err.message);

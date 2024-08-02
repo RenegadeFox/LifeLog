@@ -8,9 +8,9 @@ db.serialize(() => {
     `CREATE TABLE IF NOT EXISTS activities (
       id INTEGER PRIMARY KEY,
       type_id INTEGER,
-      status TEXT DEFAULT "n/a",
+      status TEXT DEFAULT "none",
       description TEXT,
-      timestamp TEXT,
+      timestamp INTEGER,
       FOREIGN KEY(type_id) REFERENCES activity_types(id)
     )`
   );

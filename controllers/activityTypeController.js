@@ -6,6 +6,7 @@ import {
   deleteActivityType,
 } from "../models/activityTypeModel.js";
 import { readLastActivityByType } from "../models/activityModel.js";
+import { getTimeDifference } from "../helpers/getTimeDifference.js";
 
 // Create a new activity type in the database
 export const addActivityType = async (req, res) => {
@@ -17,8 +18,8 @@ export const addActivityType = async (req, res) => {
     try {
       const ids = await Promise.all(
         activityTypes.map(async (activityType) => {
-          const { name, toggle, emoji } = activityType;
-          return await createActivityType(name, toggle, emoji);
+          const { name, toggle, start_label, end_label } = activityType;
+          return await createActivityType(name, toggle, start_label, end_label);
         })
       );
       res.status(201).send(ids);
@@ -26,9 +27,9 @@ export const addActivityType = async (req, res) => {
       res.status(500).send(err.message);
     }
   } else {
-    const { name, toggle, emoji } = req.body;
+    const { name, toggle, start_label, end_label } = req.body;
     try {
-      const id = await createActivityType(name, toggle, emoji);
+      const id = await createActivityType(name, toggle, start_label, end_label);
       res.status(201).send({ id });
     } catch (err) {
       res.status(500).send(err.message);
@@ -63,16 +64,16 @@ export const getActivityTypeById = async (req, res) => {
 // Get a single activity type from the database by its ID
 export const updateActivityTypeById = async (req, res) => {
   const { id } = req.params;
-  const { name, toggle, emoji } = req.body;
-  let newName, newToggle, newEmoji;
+  const { name, toggle, start_label, end_label } = req.body;
+  let newName, newToggle, newStartLabel, newEndLabel;
   let originalActivityType;
 
   // Return an error, if neither "name" nor "toggle" is provided in the request body
-  if (!name && !toggle && !emoji) {
+  if (!name && !toggle && !startLabel && !end_label) {
     return res
       .status(400)
       .send(
-        "Please provide a name, toggle option, and emoji for the activity type"
+        "Please provide a name, toggle option, start_label, and endLabel for the activity type"
       );
   }
 
@@ -85,26 +86,21 @@ export const updateActivityTypeById = async (req, res) => {
     return;
   }
 
-  if (!name && !emoji && toggle) {
-    // Update the toggle option only
-    newName = originalActivityType.name;
-    newEmoji = originalActivityType.emoji;
-    newToggle = toggle;
-  } else if (!emoji && !toggle && name) {
-    // Update the name only
-    newName = name;
-    newToggle = originalActivityType.toggle;
-    newEmoji = originalActivityType.emoji;
-  } else if (!name && !toggle && emoji) {
-    // Update the emoji only
-    newName = originalActivityType.name;
-    newToggle = originalActivityType.toggle;
-    newEmoji = emoji;
-  }
+  // Only update the fields that are provided in the request body
+  newName = name || originalActivityType.name;
+  newToggle = toggle || originalActivityType.toggle;
+  newStartLabel = start_label || originalActivityType.start_label;
+  newEndLabel = end_label || originalActivityType.end_label;
 
   // Update the activity type in the database
   try {
-    const changes = await updateActivityType(id, newName, newToggle);
+    const changes = await updateActivityType(
+      id,
+      newName,
+      newToggle,
+      newStartLabel,
+      newEndLabel
+    );
     return res.status(200).send({ changes });
   } catch (err) {
     return res.status(500).send(err.message);
@@ -142,42 +138,63 @@ export const getMenuItems = async (req, res) => {
     const menuItems = await Promise.all(
       allActivityTypes.map(async (activityType) => {
         const lastActivity = await readLastActivityByType(activityType.id);
+        let timeElapsed;
 
-        // Determine available menu items based on the last logged activity
-        if (lastActivity) {
-          // If the last activity is a start/end activity, return the opposite
-          if (lastActivity.status === "start")
-            return {
-              name: `${activityType.emoji} End ${activityType.name}`,
-            };
-          else if (lastActivity.status === "end")
-            return {
-              name: `${activityType.emoji} Start ${activityType.name}`,
-            };
-          else
-            return {
-              name: `${activityType.emoji} ${activityType.name}`,
-            };
+        if (lastActivity && lastActivity.timestamp) {
+          timeElapsed = getTimeDifference(lastActivity.timestamp);
+        }
+
+        // If the activity type is NOT toggle activity, return the activity type name
+        if (!activityType.toggle) {
+          return {
+            name: activityType.name,
+            id: activityType.id,
+            status: "none",
+            lastLogged: lastActivity ? timeElapsed : "N/A",
+          };
+        }
+
+        // If there are no logged activities of this type, return the start activity
+        if (!lastActivity) {
+          return {
+            name: activityType.start_label,
+            id: activityType.id,
+            status: "start",
+            lastLogged: "N/A",
+          };
+        }
+
+        // If there IS a logged activity of this type, return the opposite activity
+        if (lastActivity.status === "start") {
+          return {
+            name: activityType.end_label,
+            id: activityType.id,
+            status: "end",
+            lastLogged: timeElapsed,
+          };
         } else {
-          // If no activity has been logged yet and the activity type is a start/end activity, return the start activity
-          if (activityType.toggle)
-            return {
-              name: `${activityType.emoji} Start ${activityType.name}`,
-            };
-          // If no activity has been logged yet and the activity type is a normal activity, return the activity type name
-          else
-            return {
-              name: `${activityType.emoji} ${activityType.name}`,
-            };
+          return {
+            name: activityType.start_label,
+            id: activityType.id,
+            status: "start",
+            lastLogged: timeElapsed,
+          };
         }
       })
     );
 
     // Remove duplicates and format the final menu items
     const uniqueMenuItems = Array.from(
-      new Set(menuItems.map((item) => item.name))
+      new Set(
+        menuItems.map((item) => {
+          return `${item.name} (${item.lastLogged})`;
+        })
+      )
     );
-    res.status(200).json(uniqueMenuItems);
+    res.status(200).json({
+      items: uniqueMenuItems,
+      ids: menuItems.map((item) => `${item.id},${item.status}`),
+    });
   } catch (err) {
     res.status(500).send(err.message);
   }
