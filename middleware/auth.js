@@ -1,6 +1,3 @@
-// import crypto from "crypto";
-// const API_KEY = crypto.randomBytes(20).toString("hex");
-// console.log(`API_KEY: ${API_KEY}`);
 import dotenv from "dotenv";
 dotenv.config();
 
