@@ -95,18 +95,15 @@ export const editActivityById = async (req, res) => {
       newType_id = type_id || activity.type_id;
       newStatus = status || activity.status;
       newDescription = description || activity.description;
-      newTimestamp = timestamp || activity.timestamp;
+      newTimestamp = new Date(timestamp).getTime() / 1000 || activity.timestamp;
     }
-
-    const date = new Date(newTimestamp);
-    const unixTimestamp = date.getTime() / 1000;
 
     const changes = await updateActivityById(
       id,
       newType_id,
       newStatus,
       newDescription,
-      unixTimestamp
+      newTimestamp
     );
     res.status(200).send({ changes });
   } catch (err) {
