@@ -29,7 +29,8 @@ export const createActivity = (type_id, status, description, timestamp) => {
           `${colorize.green("Logged activity")}:
             ${colorize.bold("Type ID")}: "${type_id}"
             ${colorize.bold("Description")}: ${description}
-            ${colorize.bold("Status")}: ${status}`
+            ${colorize.bold("Status")}: ${status}
+            ${colorize.bold("Timestamp")}: ${new Date(timestamp).toISOString()}`
         );
       }
     );
@@ -72,8 +73,36 @@ export const readLastActivityByType = (type_id) => {
   });
 };
 
+// Read all activities with pagination and limiting the number of results
+export const readActivitiesWithPagination = (limit, offset) => {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT activities.id, activities.description, activities.timestamp, activities.status, activity_types.name AS activity_type, activity_types.start_label AS start_label, activity_types.end_label AS end_label
+      FROM activities
+      JOIN activity_types ON activities.type_id = activity_types.id
+      ORDER BY activities.timestamp DESC
+      LIMIT ? OFFSET ?`,
+      [limit, offset],
+      (err, rows) => {
+        if (err) reject(err);
+        resolve(rows);
+        console.log(`${colorize.magenta(
+          "Retrieved all activities with pagination"
+        )}
+        ${colorize.bold("Number of activities")}: ${rows.length}`);
+      }
+    );
+  });
+};
+
 // Update an existing activity in the database by its ID
-export const updateActivity = (id, type_id, status, description, timestamp) => {
+export const updateActivityById = (
+  id,
+  type_id,
+  status,
+  description,
+  timestamp
+) => {
   return new Promise((resolve, reject) => {
     db.run(
       `UPDATE activities SET type_id = ?, status = ?, description = ?, timestamp = ? WHERE id = ?`,
@@ -86,7 +115,8 @@ export const updateActivity = (id, type_id, status, description, timestamp) => {
             ${colorize.bold("New Value")}: 
               ${colorize.bold("Type ID")}: "${type_id}"
               ${colorize.bold("Description")}: "${description}"
-              ${colorize.bold("Status")}: "${status}"`
+              ${colorize.bold("Status")}: "${status}"
+              ${colorize.bold("Timestamp")}: "${timestamp}"`
         );
       }
     );
@@ -94,7 +124,7 @@ export const updateActivity = (id, type_id, status, description, timestamp) => {
 };
 
 // Delete an activity from the database by its ID
-export const deleteActivity = (id) => {
+export const deleteActivityById = (id) => {
   return new Promise((resolve, reject) => {
     db.run(`DELETE FROM activities WHERE id = ?`, id, function (err) {
       if (err) reject(err);

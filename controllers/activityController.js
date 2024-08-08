@@ -1,9 +1,10 @@
 import {
   createActivity,
-  updateActivity,
-  deleteActivity,
   readAllActivities,
+  readActivitiesWithPagination,
   readActivityById,
+  updateActivityById,
+  deleteActivityById,
 } from "../models/activityModel.js";
 
 // Log an activity in the database
@@ -28,10 +29,39 @@ export const logActivity = async (req, res) => {
 };
 
 // Get all activities from the database
-export const getActivities = async (req, res) => {
+export const getAllActivities = async (req, res) => {
   try {
     const allActivities = await readAllActivities();
     res.status(200).json(allActivities || []);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+// Get paginated activities from the database
+export const getPaginatedActivities = async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const page = parseInt(req.query.page, 10) || 1;
+  const offset = (page - 1) * limit;
+
+  try {
+    const rows = await readActivitiesWithPagination(limit, offset);
+    const formattedRows = rows.map((row) => {
+      let label = "";
+      if (row.status === "none") label = row.activity_type;
+      else if (row.status === "start") label = row.start_label;
+      else if (row.status === "end") label = row.end_label;
+
+      return {
+        id: row.id,
+        label: label,
+        activity: row.activity_type,
+        status: row.status,
+        description: row.description,
+        timestamp: new Date(row.timestamp * 1000).toISOString(),
+      };
+    });
+    res.status(200).json(formattedRows || []);
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -51,25 +81,32 @@ export const getActivityById = async (req, res) => {
 };
 
 // Update an existing activity in the database by its ID
-export const updateActivityById = async (req, res) => {
+export const editActivityById = async (req, res) => {
   const { id } = req.params;
   const { type_id, status, description, timestamp } = req.body;
+  let newType_id, newStatus, newDescription, newTimestamp;
 
-  // Check if the activity exists in the database
   try {
+    // Check if the activity exists before updating it
     const activity = await readActivityById(id);
-    if (!activity) return res.status(404).send("Activity not found");
-  } catch (err) {
-    return;
-  }
+    if (!activity) {
+      return res.status(404).send("Activity not found");
+    } else {
+      newType_id = type_id || activity.type_id;
+      newStatus = status || activity.status;
+      newDescription = description || activity.description;
+      newTimestamp = timestamp || activity.timestamp;
+    }
 
-  try {
-    const changes = await updateActivity(
+    const date = new Date(newTimestamp);
+    const unixTimestamp = date.getTime() / 1000;
+
+    const changes = await updateActivityById(
       id,
-      type_id,
-      status,
-      description,
-      timestamp
+      newType_id,
+      newStatus,
+      newDescription,
+      unixTimestamp
     );
     res.status(200).send({ changes });
   } catch (err) {
@@ -78,7 +115,7 @@ export const updateActivityById = async (req, res) => {
 };
 
 // Delete an existing activity in the database by its ID
-export const deleteActivityById = async (req, res) => {
+export const removeActivityById = async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -89,7 +126,7 @@ export const deleteActivityById = async (req, res) => {
   }
 
   try {
-    const changes = await deleteActivity(id);
+    const changes = await deleteActivityById(id);
     res.status(200).send({ changes });
   } catch (err) {
     res.status(500).send(err.message);
