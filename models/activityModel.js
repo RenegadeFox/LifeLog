@@ -30,7 +30,9 @@ export const createActivity = (type_id, status, description, timestamp) => {
             ${colorize.bold("Type ID")}: "${type_id}"
             ${colorize.bold("Description")}: ${description}
             ${colorize.bold("Status")}: ${status}
-            ${colorize.bold("Timestamp")}: ${new Date(timestamp).toISOString()}`
+            ${colorize.bold("Timestamp")}: ${new Date(
+            timestamp * 1000
+          ).toISOString()}`
         );
       }
     );
@@ -116,7 +118,9 @@ export const updateActivityById = (
               ${colorize.bold("Type ID")}: "${type_id}"
               ${colorize.bold("Description")}: "${description}"
               ${colorize.bold("Status")}: "${status}"
-              ${colorize.bold("Timestamp")}: "${timestamp}"`
+              ${colorize.bold("Timestamp")}: "${new Date(
+            timestamp * 1000
+          ).toISOString()}"`
         );
       }
     );

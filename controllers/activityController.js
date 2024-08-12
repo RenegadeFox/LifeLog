@@ -58,7 +58,7 @@ export const getPaginatedActivities = async (req, res) => {
         activity: row.activity_type,
         status: row.status,
         description: row.description,
-        timestamp: new Date(row.timestamp * 1000).toISOString(),
+        timestamp: `${new Date(row.timestamp * 1000).toISOString()}`,
       };
     });
     res.status(200).json(formattedRows || []);
