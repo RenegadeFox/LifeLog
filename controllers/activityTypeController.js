@@ -211,6 +211,7 @@ export const getMenuItemsV2 = async (req, res) => {
         const lastActivity = await readLastActivityByType(activityType.id);
         let timeElapsed;
 
+        // Calculate the time elapsed since the last activity was logged if it's been logged
         if (lastActivity && lastActivity.timestamp) {
           timeElapsed = getTimeDifference(lastActivity.timestamp);
         }
@@ -224,6 +225,7 @@ export const getMenuItemsV2 = async (req, res) => {
             timeElapsed: lastActivity ? timeElapsed : "N/A",
             description: activityType.description || "",
             lastLogged: lastActivity ? lastActivity.timestamp : 0,
+            category: activityType.category || "Uncategorized",
           };
         }
 
@@ -237,6 +239,7 @@ export const getMenuItemsV2 = async (req, res) => {
             timeElapsed: "N/A",
             description: activityType.description || "",
             lastLogged: 0,
+            category: activityType.category || "Uncategorized",
           };
         }
 
@@ -249,6 +252,7 @@ export const getMenuItemsV2 = async (req, res) => {
             timeElapsed: timeElapsed,
             description: lastActivity.description || "",
             lastLogged: lastActivity.timestamp || 0,
+            category: activityType.category || "Uncategorized",
           };
         } else {
           // Otherwise, return the start activity
@@ -259,6 +263,7 @@ export const getMenuItemsV2 = async (req, res) => {
             timeElapsed: timeElapsed || "N/A",
             description: lastActivity.description || "",
             lastLogged: lastActivity.timestamp || 0,
+            category: activityType.category || "Uncategorized",
           };
         }
       })
@@ -286,7 +291,6 @@ export const getMenuItemsV2 = async (req, res) => {
       labels: [
         ...startedItems
           .map((item) => {
-            console.log(item);
             if (item.name.indexOf("gaming") !== -1) {
               const activeGame =
                 item.description.indexOf("Game: ") !== -1

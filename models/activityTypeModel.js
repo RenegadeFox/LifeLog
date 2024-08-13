@@ -12,6 +12,7 @@ db.serialize(() => {
       start_label TEXT,
       end_label TEXT,
       category_id INTEGER,
+      FOREIGN KEY(category_id) REFERENCES categories(id)
     )`
   );
 });
@@ -59,7 +60,7 @@ export const readAllActivityTypes = () => {
         activity_types.toggle,
         activity_types.start_label,
         activity_types.end_label,
-        categories.name as category
+        categories.name AS category
       FROM activity_types
       JOIN categories ON activity_types.category_id = categories.id`,
       [],

@@ -65,7 +65,17 @@ export const readActivityById = (id) => {
 export const readLastActivityByType = (type_id) => {
   return new Promise((resolve, reject) => {
     db.get(
-      `SELECT id, type_id, status, description, timestamp FROM activities WHERE type_id = ? ORDER BY timestamp DESC LIMIT 1`,
+      `SELECT
+        activities.id,
+        activity_types.name AS activity_type,
+        activities.status,
+        activities.description,
+        timestamp,
+        categories.name AS category
+      FROM activities
+      JOIN activity_types ON activities.type_id = activity_types.id
+      JOIN categories ON activity_types.category_id = categories.id
+      WHERE type_id = ? ORDER BY timestamp DESC LIMIT 1`,
       [type_id],
       (err, row) => {
         if (err) reject(err);
