@@ -8,7 +8,7 @@ import {
 } from "../models/activityModel.js";
 
 // Log an activity in the database
-export const logActivity = async (req, res) => {
+export const addActivity = async (req, res) => {
   const { type_id, status, description, timestamp } = req.body;
 
   // Convert the ISO 8601 timestamp to a Unix timestamp
@@ -59,6 +59,7 @@ export const getPaginatedActivities = async (req, res) => {
         status: row.status,
         description: row.description,
         timestamp: `${new Date(row.timestamp * 1000).toISOString()}`,
+        category: row.category || "Uncategorized",
       };
     });
     res.status(200).json(formattedRows || []);

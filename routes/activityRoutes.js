@@ -1,7 +1,6 @@
 import express from "express";
 import {
-  logActivity,
-  // getAllActivities,
+  addActivity,
   getPaginatedActivities,
   getActivityById,
   editActivityById,
@@ -12,7 +11,7 @@ const router = express.Router();
 
 // All routes start with http://${URL}/activities
 
-router.post("/", logActivity); // CREATE a new activity
+router.post("/", addActivity); // CREATE a new activity
 // router.get("/", getActivities); // READ all activities
 router.get("/", getPaginatedActivities); // READ paginated activities
 router.get("/:id", getActivityById); // READ a single activity by ID

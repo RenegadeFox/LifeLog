@@ -1,9 +1,9 @@
 import {
   createActivityType,
   readAllActivityTypes,
-  updateActivityType,
+  updateActivityTypeById,
   readActivityTypeById,
-  deleteActivityType,
+  deleteActivityTypeById,
 } from "../models/activityTypeModel.js";
 import { readLastActivityByType } from "../models/activityModel.js";
 import { getTimeDifference } from "../helpers/getTimeDifference.js";
@@ -18,8 +18,15 @@ export const addActivityType = async (req, res) => {
     try {
       const ids = await Promise.all(
         activityTypes.map(async (activityType) => {
-          const { name, toggle, start_label, end_label } = activityType;
-          return await createActivityType(name, toggle, start_label, end_label);
+          const { name, toggle, start_label, end_label, categoryId } =
+            activityType;
+          return await createActivityType(
+            name,
+            toggle,
+            start_label,
+            end_label,
+            categoryId
+          );
         })
       );
       res.status(201).send(ids);
@@ -27,9 +34,15 @@ export const addActivityType = async (req, res) => {
       res.status(500).send(err.message);
     }
   } else {
-    const { name, toggle, start_label, end_label } = req.body;
+    const { name, toggle, start_label, end_label, categoryId } = req.body;
     try {
-      const id = await createActivityType(name, toggle, start_label, end_label);
+      const id = await createActivityType(
+        name,
+        toggle,
+        start_label,
+        end_label,
+        categoryId
+      );
       res.status(201).send({ id });
     } catch (err) {
       res.status(500).send(err.message);
@@ -38,7 +51,7 @@ export const addActivityType = async (req, res) => {
 };
 
 // Get all activity types from the database
-export const getActivityTypes = async (req, res) => {
+export const getAllActivityTypes = async (req, res) => {
   try {
     const allActivityTypes = await readAllActivityTypes();
     res.status(200).json(allActivityTypes);
@@ -55,51 +68,44 @@ export const getActivityTypeById = async (req, res) => {
     const activityType = await readActivityTypeById(id);
 
     if (activityType) res.status(200).json(activityType);
-    else res.status(404).send(`Activity type with ID ${id} not found`);
+    else res.status(404).send(`Activity type with ID "${id}" not found`);
   } catch (err) {
     res.status(500).send(err.message);
   }
 };
 
 // Get a single activity type from the database by its ID
-export const updateActivityTypeById = async (req, res) => {
+export const editActivityTypeById = async (req, res) => {
   const { id } = req.params;
-  const { name, toggle, start_label, end_label } = req.body;
-  let newName, newToggle, newStartLabel, newEndLabel;
-  let originalActivityType;
+  const { name, toggle, startLabel, endLabel, categoryId } = req.body;
 
   // Return an error, if neither "name" nor "toggle" is provided in the request body
-  if (!name && !toggle && !startLabel && !end_label) {
+  if (!name && !toggle && !startLabel && !endLabel && !categoryId) {
     return res
       .status(400)
-      .send(
-        "Please provide a name, toggle option, start_label, and endLabel for the activity type"
-      );
+      .send("Missing name, toggle, startLabel, endLabel, categoryId");
   }
-
-  // Check if the activity type exists in the database
-  try {
-    originalActivityType = await readActivityTypeById(id);
-    if (!originalActivityType)
-      return res.status(404).send(`Activity type with ID ${id} not found`);
-  } catch (err) {
-    return;
-  }
-
-  // Only update the fields that are provided in the request body
-  newName = name || originalActivityType.name;
-  newToggle = toggle || originalActivityType.toggle;
-  newStartLabel = start_label || originalActivityType.start_label;
-  newEndLabel = end_label || originalActivityType.end_label;
 
   // Update the activity type in the database
   try {
-    const changes = await updateActivityType(
+    const originalActivityType = await readActivityTypeById(id);
+    if (!originalActivityType)
+      return res.status(404).send(`Activity type with ID "${id}" not found`);
+
+    // Only update the fields that are provided in the request body
+    const newName = name || originalActivityType.name;
+    const newToggle = toggle || originalActivityType.toggle;
+    const newStartLabel = startLabel || originalActivityType.start_label;
+    const newEndLabel = endLabel || originalActivityType.end_label;
+    const newCategoryId = categoryId || originalActivityType.category_id;
+
+    const changes = await updateActivityTypeById(
       id,
       newName,
       newToggle,
       newStartLabel,
-      newEndLabel
+      newEndLabel,
+      newCategoryId
     );
     return res.status(200).send({ changes });
   } catch (err) {
@@ -108,21 +114,16 @@ export const updateActivityTypeById = async (req, res) => {
 };
 
 // Delete an existing activity type from the database by its ID
-export const deleteActivityTypeById = async (req, res) => {
+export const removeActivityTypeById = async (req, res) => {
   const { id } = req.params;
-
-  // Check if the activity type exists in the database
-  try {
-    const activityType = await readActivityTypeById(id);
-    if (!activityType)
-      return res.status(404).send(`Activity type with ID ${id} not found`);
-  } catch (err) {
-    return;
-  }
 
   // Delete the activity type from the database
   try {
-    const changes = await deleteActivityType(id);
+    const activityType = await readActivityTypeById(id);
+    if (!activityType)
+      return res.status(404).send(`Activity type with ID "${id}" not found`);
+
+    const changes = await deleteActivityTypeById(id);
     res.status(200).send({ changes });
   } catch (err) {
     res.status(500).send(err.message);
@@ -201,6 +202,7 @@ export const getMenuItems = async (req, res) => {
 };
 
 // Version 2 of getMenuItems
+// TODO: Update to include the category of the activity type with sub-menu items of that activity type
 export const getMenuItemsV2 = async (req, res) => {
   try {
     const allActivityTypes = await readAllActivityTypes();

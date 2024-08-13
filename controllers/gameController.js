@@ -1,7 +1,10 @@
 import {
   createGame,
   readAllGames,
+  readGameById,
   readGameByName,
+  updateGameById,
+  deleteGameById,
 } from "../models/gameModel.js";
 
 // Add a new game to the database
@@ -64,6 +67,50 @@ export const getGameByName = async (req, res) => {
     }
 
     res.status(200).json(row);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+// Update an existing game in the database by its ID
+export const editGameById = async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).send("Please provide a name, for the game");
+  }
+
+  try {
+    // Check if the game exists before updating it
+    const game = await readGameById(id);
+
+    if (!game) {
+      return res.status(404).send("Game not found");
+    }
+
+    const changes = await updateGameById(id, name);
+
+    res.status(200).send(changes);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+// Delete an existing game from the database by its ID
+export const removeGameById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const game = await readGameById(id);
+
+    if (!game) {
+      return res.status(404).send("Game not found");
+    }
+
+    const changes = await deleteGameById(id);
+
+    res.status(200).send(changes);
   } catch (err) {
     res.status(500).send(err.message);
   }

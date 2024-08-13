@@ -69,6 +69,7 @@ export const readLastActivityByType = (type_id) => {
       [type_id],
       (err, row) => {
         if (err) reject(err);
+
         resolve(row);
       }
     );
@@ -79,9 +80,18 @@ export const readLastActivityByType = (type_id) => {
 export const readActivitiesWithPagination = (limit, offset) => {
   return new Promise((resolve, reject) => {
     db.all(
-      `SELECT activities.id, activities.description, activities.timestamp, activities.status, activity_types.name AS activity_type, activity_types.start_label AS start_label, activity_types.end_label AS end_label
+      `SELECT
+        activities.id,
+        activities.description,
+        activities.timestamp,
+        activities.status,
+        activity_types.name AS activity_type,
+        activity_types.start_label AS start_label,
+        activity_types.end_label AS end_label,
+        categories.name AS category
       FROM activities
       JOIN activity_types ON activities.type_id = activity_types.id
+      JOIN categories ON activity_types.category_id = categories.id
       ORDER BY activities.timestamp DESC
       LIMIT ? OFFSET ?`,
       [limit, offset],
@@ -111,7 +121,9 @@ export const updateActivityById = (
       [type_id, status, description, timestamp, id],
       function (err) {
         if (err) reject(err);
+
         resolve(this.changes);
+
         console.log(
           `${colorize.blue("Updated activity")}: ${colorize.bold("ID")}: "${id}"
             ${colorize.bold("New Value")}: 

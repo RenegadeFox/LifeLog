@@ -60,3 +60,40 @@ export const readGameByName = (name) => {
     });
   });
 };
+
+// Update an existing game in the database by its ID
+export const updateGameById = (id, newName) => {
+  return new Promise((resolve, reject) => {
+    db.run(
+      "UPDATE games SET name = ? WHERE id = ?",
+      [newName, id],
+      function (err) {
+        if (err) reject(err);
+
+        resolve(this.changes);
+
+        console.log(
+          `${colorize.green("Updated game")}:
+          ${colorize.bold("ID")}: "${id}"
+          ${colorize.bold("New name")}: ${newName}`
+        );
+      }
+    );
+  });
+};
+
+// Delete an existing game from the database by its ID
+export const deleteGameById = (id) => {
+  return new Promise((resolve, reject) => {
+    db.run("DELETE FROM games WHERE id = ?", [id], function (err) {
+      if (err) reject(err);
+
+      resolve(this.changes);
+
+      console.log(
+        `${colorize.red("Deleted game")}:
+        ${colorize.bold("ID")}: "${id}"`
+      );
+    });
+  });
+};
