@@ -7,6 +7,7 @@ import {
   getMenuItems,
   removeActivityTypeById,
   getMenuItemsV2,
+  getMenuItemsV3,
 } from "../controllers/activityTypeController.js";
 
 const router = express.Router();
@@ -22,5 +23,7 @@ router.delete("/:id", removeActivityTypeById); // DELETE an activity type by ID
 router.get("/menu-items", getMenuItems); // READ all available activity types to be used in the menu
 
 router.get("/v2/menu-items", getMenuItemsV2); // READ all available activity types to be used in the menu
+
+router.get("/v3/menu-items", getMenuItemsV3);
 
 export default router;

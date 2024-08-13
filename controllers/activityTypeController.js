@@ -6,6 +6,7 @@ import {
   deleteActivityTypeById,
 } from "../models/activityTypeModel.js";
 import { readLastActivityByType } from "../models/activityModel.js";
+import { readAllCategories } from "../models/categoryModel.js";
 import { getTimeDifference } from "../helpers/getTimeDifference.js";
 
 // Create a new activity type in the database
@@ -315,6 +316,74 @@ export const getMenuItemsV2 = async (req, res) => {
       ],
       ids: [...startedItems, ...endedItems, ...nonToggleItems],
     });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+export const getMenuItemsV3 = async (req, res) => {
+  try {
+    const output = {};
+    const startedMenuItems = {};
+    const allcategories = await readAllCategories();
+    const allActivityTypes = await readAllActivityTypes();
+
+    const menuItems = await Promise.all(
+      allcategories.map(async (category) => {
+        const relatedActivityTypes = allActivityTypes.filter(
+          (activityType) => activityType.category === category.name
+        );
+
+        return {
+          category: category.name,
+          activityTypes: await Promise.all(
+            relatedActivityTypes.map(async (activityType) => {
+              const lastActivity = await readLastActivityByType(
+                activityType.id
+              );
+              let timeElapsed = "N/A";
+
+              // Calculate the time elapsed since the last activity was logged if it's been logged
+              if (lastActivity && lastActivity.timestamp) {
+                timeElapsed = getTimeDifference(lastActivity.timestamp);
+              }
+
+              // If the activity type is NOT a toggle activity, return the activity type name
+              if (!activityType.toggle) {
+                return { name: activityType.name, timeElapsed };
+              }
+
+              // Going forward, we know that the activity type is a toggle activity
+
+              // If there are no logged activities of this type, return the start activity
+              if (!lastActivity) {
+                return { name: activityType.start_label, timeElapsed };
+              }
+
+              // If there IS a logged activity of this type, return the opposite activity
+              if (lastActivity.status === "start") {
+                startedMenuItems[activityType.end_label] = timeElapsed;
+                return { name: null, timeElapsed: null };
+              } else {
+                // Otherwise, return the start activity
+                return { name: activityType.start_label, timeElapsed };
+              }
+            })
+          ),
+        };
+      })
+    );
+
+    // Create an object with the category as the key and the activity types as an array of values
+    menuItems.forEach((menuItem) => {
+      output[menuItem.category] = menuItem.activityTypes
+        .filter((activityType) => activityType.name && activityType.timeElapsed)
+        .map((activityType) => {
+          return `${activityType.name} (${activityType.timeElapsed})`;
+        });
+    });
+
+    res.status(200).json({ ...startedMenuItems, ...output });
   } catch (err) {
     res.status(500).send(err.message);
   }
