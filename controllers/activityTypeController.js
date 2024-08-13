@@ -199,3 +199,117 @@ export const getMenuItems = async (req, res) => {
     res.status(500).send(err.message);
   }
 };
+
+// Version 2 of getMenuItems
+export const getMenuItemsV2 = async (req, res) => {
+  try {
+    const allActivityTypes = await readAllActivityTypes();
+    const menuItems = await Promise.all(
+      allActivityTypes.map(async (activityType) => {
+        const lastActivity = await readLastActivityByType(activityType.id);
+        let timeElapsed;
+
+        if (lastActivity && lastActivity.timestamp) {
+          timeElapsed = getTimeDifference(lastActivity.timestamp);
+        }
+
+        // If the activity type is NOT a toggle activity, return the activity type name
+        if (!activityType.toggle) {
+          return {
+            name: activityType.name,
+            id: activityType.id,
+            status: "none",
+            timeElapsed: lastActivity ? timeElapsed : "N/A",
+            description: activityType.description || "",
+            lastLogged: lastActivity ? lastActivity.timestamp : 0,
+          };
+        }
+
+        // If there are no logged activities of this type, return the start activity
+        // Since we know it's not a toggle activity.
+        if (!lastActivity) {
+          return {
+            name: activityType.start_label,
+            id: activityType.id,
+            status: "start",
+            timeElapsed: "N/A",
+            description: activityType.description || "",
+            lastLogged: 0,
+          };
+        }
+
+        // If there IS a logged activity of this type, return the opposite activity
+        if (lastActivity.status === "start") {
+          return {
+            name: activityType.end_label,
+            id: activityType.id,
+            status: "end",
+            timeElapsed: timeElapsed,
+            description: lastActivity.description || "",
+            lastLogged: lastActivity.timestamp || 0,
+          };
+        } else {
+          // Otherwise, return the start activity
+          return {
+            name: activityType.start_label,
+            id: activityType.id,
+            status: "start",
+            timeElapsed: timeElapsed || "N/A",
+            description: lastActivity.description || "",
+            lastLogged: lastActivity.timestamp || 0,
+          };
+        }
+      })
+    );
+
+    const sortByLastLogged = (a, b) => {
+      if (a.lastLogged === 0) return -1;
+      if (b.lastLogged === 0) return 1;
+      return b.lastLogged - a.lastLogged;
+    };
+
+    // Consolidate all of the menu items that are toggleable, with the ones that have a status of "end" (currently in progress) at the top
+    const startedItems = menuItems.filter((item) => item.status === "end");
+    const endedItems = menuItems.filter((item) => item.status === "start");
+    const nonToggleItems = menuItems.filter((item) => item.status === "none");
+
+    // Sort the nonToggleItems so the most recently logged activity is at the top
+    nonToggleItems.sort((a, b) => {
+      if (a.lastLogged === 0) return -1;
+      if (b.lastLogged === 0) return 1;
+      return a.lastLogged - b.lastLogged;
+    });
+
+    res.status(200).json({
+      labels: [
+        ...startedItems
+          .map((item) => {
+            console.log(item);
+            if (item.name.indexOf("gaming") !== -1) {
+              const activeGame =
+                item.description.indexOf("Game: ") !== -1
+                  ? item.description.split("Game: ")[1]
+                  : "N/A";
+              const activeGameLabel = `${item.name} - ${activeGame} (${item.timeElapsed})`;
+
+              return activeGame !== "N/A"
+                ? activeGameLabel
+                : `${item.name} (${item.timeElapsed})`;
+            }
+
+            return `${item.name} (${item.timeElapsed})`;
+          })
+          .sort(sortByLastLogged),
+        ...endedItems
+          .map((item) => `${item.name} (${item.timeElapsed})`)
+          .sort(sortByLastLogged),
+        ...nonToggleItems
+          .map((item) => `${item.name} (${item.timeElapsed})`)
+          .sort(sortByLastLogged),
+      ],
+      ids: [...startedItems, ...endedItems, ...nonToggleItems],
+    });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
