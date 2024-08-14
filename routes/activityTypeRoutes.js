@@ -4,8 +4,8 @@ import {
   getAllActivityTypes,
   getActivityTypeById,
   editActivityTypeById,
-  getMenuItems,
   removeActivityTypeById,
+  getMenuItems,
   getMenuItemsV2,
   getMenuItemsV3,
 } from "../controllers/activityTypeController.js";
@@ -20,10 +20,8 @@ router.get("/:id", getActivityTypeById); // READ a single activity type by ID
 router.put("/:id", editActivityTypeById); // UPDATE an activity type by ID
 router.delete("/:id", removeActivityTypeById); // DELETE an activity type by ID
 
-router.get("/menu-items", getMenuItems); // READ all available activity types to be used in the menu
-
-router.get("/v2/menu-items", getMenuItemsV2); // READ all available activity types to be used in the menu
-
+router.get("/menu-items", getMenuItems);
+router.get("/v2/menu-items", getMenuItemsV2);
 router.get("/v3/menu-items", getMenuItemsV3);
 
 export default router;
