@@ -323,8 +323,10 @@ export const getMenuItemsV2 = async (req, res) => {
 
 export const getMenuItemsV3 = async (req, res) => {
   try {
-    const output = {};
-    const startedMenuItems = {};
+    const categoriesItems = {};
+    const startedMenuItems = [];
+    const uncategorizedItems = [];
+    const itemIds = [];
     const allcategories = await readAllCategories();
     const allActivityTypes = await readAllActivityTypes();
 
@@ -342,10 +344,42 @@ export const getMenuItemsV3 = async (req, res) => {
                 activityType.id
               );
               let timeElapsed = "N/A";
+              let activityLabel = activityType.name;
 
               // Calculate the time elapsed since the last activity was logged if it's been logged
               if (lastActivity && lastActivity.timestamp) {
                 timeElapsed = getTimeDifference(lastActivity.timestamp);
+
+                // If the activity type is a start activity, set the label to the end activity label
+                if (lastActivity.status === "start") {
+                  // If the activity type is a gaming activity, remove the word "gaming" from the label and add the game name
+                  if (activityType.name === "gaming") {
+                    activityLabel = `${activityType.end_label.replace(
+                      /gaming/i,
+                      ""
+                    )}${lastActivity.description.split("Game: ")[1]}`;
+                  } else {
+                    activityLabel = activityType.end_label;
+                  }
+                }
+                // If the activity type is an end activity, set the label to the start activity label
+                else if (lastActivity.status === "end") {
+                  activityLabel = activityType.start_label;
+                }
+
+                itemIds.push({
+                  id: activityType.id,
+                  name: activityLabel,
+                  status: lastActivity.status,
+                });
+              }
+
+              // Check if the activity type is uncategorized and add it to the uncategorizedItems object
+              if (category.name === "Uncategorized") {
+                uncategorizedItems.push(
+                  `${activityType.name} (${timeElapsed})`
+                );
+                return { name: null, timeElapsed: null };
               }
 
               // If the activity type is NOT a toggle activity, return the activity type name
@@ -360,9 +394,9 @@ export const getMenuItemsV3 = async (req, res) => {
                 return { name: activityType.start_label, timeElapsed };
               }
 
-              // If there IS a logged activity of this type, return the opposite activity
+              // If there IS a logged activity of this type, add it to the startedMenuItems object
               if (lastActivity.status === "start") {
-                startedMenuItems[activityType.end_label] = timeElapsed;
+                startedMenuItems.push(`${activityLabel} (${timeElapsed})`);
                 return { name: null, timeElapsed: null };
               } else {
                 // Otherwise, return the start activity
@@ -376,14 +410,22 @@ export const getMenuItemsV3 = async (req, res) => {
 
     // Create an object with the category as the key and the activity types as an array of values
     menuItems.forEach((menuItem) => {
-      output[menuItem.category] = menuItem.activityTypes
+      // If the category is uncategorized, skip it
+      if (menuItem.category === "Uncategorized") return;
+      categoriesItems[menuItem.category] = menuItem.activityTypes
+        // Filter out any activity types that don't have a name or timeElapsed (e.g. uncategorized items or started items)
         .filter((activityType) => activityType.name && activityType.timeElapsed)
         .map((activityType) => {
           return `${activityType.name} (${activityType.timeElapsed})`;
         });
     });
 
-    res.status(200).json({ ...startedMenuItems, ...output });
+    res.status(200).json({
+      started: startedMenuItems,
+      ...categoriesItems,
+      uncategorized: uncategorizedItems,
+      ids: itemIds,
+    });
   } catch (err) {
     res.status(500).send(err.message);
   }
