@@ -89,7 +89,7 @@ export const readActivityTypeById = (id) => {
         categories.name as category
       FROM activity_types
       JOIN categories ON activity_types.category_id = categories.id
-      WHERE id = ?`,
+      WHERE activity_types.id = ?`,
       [id],
       (err, row) => {
         if (err) reject(err);
