@@ -19,14 +19,14 @@ export const addActivityType = async (req, res) => {
     try {
       const ids = await Promise.all(
         activityTypes.map(async (activityType) => {
-          const { name, toggle, start_label, end_label, categoryId } =
+          const { name, toggle, start_label, end_label, category_id } =
             activityType;
           return await createActivityType(
             name,
             toggle,
             start_label,
             end_label,
-            categoryId
+            category_id
           );
         })
       );
@@ -35,14 +35,14 @@ export const addActivityType = async (req, res) => {
       res.status(500).send(err.message);
     }
   } else {
-    const { name, toggle, start_label, end_label, categoryId } = req.body;
+    const { name, toggle, start_label, end_label, category_id } = req.body;
     try {
       const id = await createActivityType(
         name,
         toggle,
         start_label,
         end_label,
-        categoryId
+        category_id
       );
       res.status(201).send({ id });
     } catch (err) {

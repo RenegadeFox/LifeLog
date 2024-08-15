@@ -28,7 +28,7 @@ export const createActivityType = (
   const newToggle = toggle || 0;
   const newStartLabel = startLabel || "";
   const newEndLabel = endLabel || "";
-  const newCategoryId = categoryId || 0;
+  const newCategoryId = categoryId || 2; // Default to 2 for "Uncategorized"
 
   return new Promise((resolve, reject) => {
     db.run(
