@@ -2,6 +2,7 @@ import {
   createActivity,
   readAllActivities,
   readActivitiesWithPagination,
+  readActivitiesByTypeWithPagination,
   readActivityById,
   updateActivityById,
   deleteActivityById,
@@ -46,6 +47,41 @@ export const getPaginatedActivities = async (req, res) => {
 
   try {
     const rows = await readActivitiesWithPagination(limit, offset);
+    const formattedRows = rows.map((row) => {
+      let label = "";
+      if (row.status === "none") label = row.activity_type;
+      else if (row.status === "start") label = row.start_label;
+      else if (row.status === "end") label = row.end_label;
+
+      return {
+        id: row.id,
+        label: label,
+        activity: row.activity_type,
+        status: row.status,
+        description: row.description,
+        timestamp: `${new Date(row.timestamp * 1000).toISOString()}`,
+        category: row.category || "Uncategorized",
+      };
+    });
+    res.status(200).json(formattedRows || []);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+// GET all activities of a specific type with pagination from the database
+export const getActivitiesByTypeWithPagination = async (req, res) => {
+  const { type_id } = req.params;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const page = parseInt(req.query.page, 10) || 1;
+  const offset = (page - 1) * limit;
+
+  try {
+    const rows = await readActivitiesByTypeWithPagination(
+      type_id,
+      limit,
+      offset
+    );
     const formattedRows = rows.map((row) => {
       let label = "";
       if (row.status === "none") label = row.activity_type;

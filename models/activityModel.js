@@ -117,6 +117,34 @@ export const readActivitiesWithPagination = (limit, offset) => {
   });
 };
 
+// READ all activities of a specific activity_type with pagination and limiting the number of results
+export const readActivitiesByTypeWithPagination = (type_id, limit, offset) => {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT
+        activities.id,
+        activities.description,
+        activities.timestamp,
+        activities.status,
+        activity_types.name AS activity_type,
+        activity_types.start_label AS start_label,
+        activity_types.end_label AS end_label,
+        categories.name AS category
+      FROM activities
+      JOIN activity_types ON activities.type_id = activity_types.id
+      JOIN categories ON activity_types.category_id = categories.id
+      WHERE type_id = ?
+      ORDER BY activities.timestamp DESC
+      LIMIT ? OFFSET ?`,
+      [type_id, limit, offset],
+      (err, rows) => {
+        if (err) reject(err);
+        resolve(rows);
+      }
+    );
+  });
+};
+
 // Update an existing activity in the database by its ID
 export const updateActivityById = (
   id,
