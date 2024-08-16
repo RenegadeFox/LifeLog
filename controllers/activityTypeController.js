@@ -355,15 +355,22 @@ export const getMenuItemsV3 = async (req, res) => {
               // Calculate the time elapsed since the last activity was logged if it's been logged
               if (lastActivity && lastActivity.timestamp) {
                 timeElapsed = getTimeDifference(lastActivity.timestamp);
+                const isGaming = activityType.name === "gaming";
+                const isMovie = activityType.name === "watching movie";
 
                 // If the activity type is a start activity, set the label to the end activity label
                 if (lastActivity.status === "start") {
                   // If the activity type is a gaming activity, remove the word "gaming" from the label and add the game name
-                  if (activityType.name === "gaming") {
+                  if (isGaming) {
                     activityLabel = `${activityType.end_label.replace(
                       /gaming/i,
                       ""
                     )}${lastActivity.description.split("Game: ")[1]}`;
+                  } else if (isMovie) {
+                    activityLabel = `${activityType.end_label.replace(
+                      /watching movie/i,
+                      ""
+                    )}${lastActivity.description.split("Movie: ")[1]}`;
                   } else {
                     activityLabel = activityType.end_label;
                   }
