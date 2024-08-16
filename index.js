@@ -5,6 +5,7 @@ import activityTypeRoutes from "./routes/activityTypeRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import gameRoutes from "./routes/gameRoutes.js";
 import movieRoutes from "./routes/movieRoutes.js";
+import tvShowRoutes from "./routes/tvShowRoutes.js";
 import apiKeyAuth from "./middleware/auth.js";
 
 const app = express();
@@ -19,6 +20,7 @@ app.use("/activity-types", activityTypeRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/games", gameRoutes);
 app.use("/movies", movieRoutes);
+app.use("/tv-shows", tvShowRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
