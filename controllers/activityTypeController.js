@@ -400,7 +400,7 @@ export const getMenuItemsV3 = async (req, res) => {
               if (!lastActivity) {
                 itemIds.push({
                   id: activityType.id,
-                  name: activityLabel,
+                  name: activityType.start_label,
                   status: "start",
                 });
                 return { name: activityType.start_label, timeElapsed };
