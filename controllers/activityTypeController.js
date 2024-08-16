@@ -90,7 +90,9 @@ export const editActivityTypeById = async (req, res) => {
   const { id } = req.params;
   const { name, toggle, start_label, end_label, category_id } = req.body;
 
-  if (!name) return res.status(400).send("Missing name");
+  // Check if no fields are provided in the request body
+  if (!name && !toggle && !start_label && !end_label && !category_id)
+    return res.status(400).send("No fields provided");
 
   // Update the activity type in the database
   try {
