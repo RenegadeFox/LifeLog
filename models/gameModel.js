@@ -1,5 +1,4 @@
 import sqlite3 from "sqlite3";
-import { colorize } from "../helpers/colors.js";
 const db = new sqlite3.Database("./database.db");
 
 db.serialize(() => {
@@ -16,6 +15,7 @@ export const createGame = (newGameName) => {
       [newGameName],
       function (err) {
         if (err) reject(err);
+
         resolve(this.lastID);
       }
     );
@@ -27,6 +27,8 @@ export const readAllGames = () => {
   return new Promise((resolve, reject) => {
     db.all("SELECT * FROM games", [], (err, rows) => {
       if (err) reject(err);
+
+      resolve(rows);
     });
   });
 };
@@ -36,6 +38,7 @@ export const readGameById = (id) => {
   return new Promise((resolve, reject) => {
     db.get("SELECT * FROM games WHERE id = ?", [id], (err, row) => {
       if (err) reject(err);
+
       resolve(row);
     });
   });
@@ -49,6 +52,7 @@ export const readGameByName = (name) => {
       [name],
       (err, row) => {
         if (err) reject(err);
+
         resolve(row);
       }
     );
