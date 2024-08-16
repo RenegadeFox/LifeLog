@@ -17,7 +17,7 @@ db.serialize(() => {
   );
 });
 
-// Create a new activity type in the database
+// CREATE a new activity type in the database
 export const createActivityType = (
   name,
   toggle,
@@ -38,19 +38,12 @@ export const createActivityType = (
         if (err) reject(err);
 
         resolve(this.lastID);
-
-        console.log(`${colorize.green("Created activity type")}: "${name}"
-          ${colorize.bold("ID")}: "${this.lastID}"
-          ${colorize.bold("Toggle")}: "${newToggle}"
-          ${colorize.bold("Start Label")}: "${newStartLabel}"
-          ${colorize.bold("End Label")}: "${newEndLabel}"
-          ${colorize.bold("Category ID")}: "${newCategoryId}"`);
       }
     );
   });
 };
 
-// Get all activity types from the database
+// READ all activity types from the database
 export const readAllActivityTypes = () => {
   return new Promise((resolve, reject) => {
     db.all(
@@ -68,15 +61,12 @@ export const readAllActivityTypes = () => {
         if (err) reject(err);
 
         resolve(rows);
-
-        console.log(`${colorize.magenta("Retrieved all activity types")}
-        ${colorize.bold("Number of activity types")}: ${rows.length}`);
       }
     );
   });
 };
 
-// Get a single activity type from the database by its ID
+// READ a single activity type from the database by its ID
 export const readActivityTypeById = (id) => {
   return new Promise((resolve, reject) => {
     db.get(
@@ -100,7 +90,7 @@ export const readActivityTypeById = (id) => {
   });
 };
 
-// Update an existing activity type in the database by its ID
+// UPDATE an existing activity type in the database by its ID
 export const updateActivityTypeById = (
   id,
   name,
@@ -117,34 +107,18 @@ export const updateActivityTypeById = (
         if (err) reject(err);
 
         resolve(this.changes);
-
-        console.log(
-          `${colorize.blue("Updated activity type")}: 
-            ${colorize.bold("ID")}: "${id}"
-            ${colorize.bold("New Name")}: "${name}"
-            ${colorize.bold("New Toggle")}: "${toggle}"
-            ${colorize.bold("New Start Label")}: "${startLabel}"
-            ${colorize.bold("New End Label")}: "${endLabel}"
-            ${colorize.bold("New Category ID")}: "${categoryId}"`
-        );
       }
     );
   });
 };
 
-// Delete an existing activity type from the database by its ID
+// DELETE an existing activity type from the database by its ID
 export const deleteActivityTypeById = (id) => {
   return new Promise((resolve, reject) => {
     db.run(`DELETE FROM activity_types WHERE id = ?`, [id], function (err) {
       if (err) reject(err);
 
       resolve(this.changes);
-
-      console.log(
-        `${colorize.red("Deleted activity type")}: ${colorize.bold(
-          "ID"
-        )}: "${id}"`
-      );
     });
   });
 };

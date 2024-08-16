@@ -2,11 +2,11 @@ import sqlite3 from "sqlite3";
 import { colorize } from "../helpers/colors.js";
 const db = new sqlite3.Database("./database.db");
 
-// Create the activities table in the database
+// Create the "activities" table in the database
 db.serialize(() => {
   db.run(
     `CREATE TABLE IF NOT EXISTS activities (
-      id INTEGER PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       type_id INTEGER,
       status TEXT DEFAULT "none",
       description TEXT,
@@ -16,7 +16,7 @@ db.serialize(() => {
   );
 });
 
-// Log a new activity in the database
+// CREATE a new activity in the database
 export const createActivity = (type_id, status, description, timestamp) => {
   return new Promise((resolve, reject) => {
     db.run(
@@ -25,33 +25,22 @@ export const createActivity = (type_id, status, description, timestamp) => {
       function (err) {
         if (err) reject(err);
         resolve(this.lastID);
-        console.log(
-          `${colorize.green("Logged activity")}:
-            ${colorize.bold("Type ID")}: "${type_id}"
-            ${colorize.bold("Description")}: ${description}
-            ${colorize.bold("Status")}: ${status}
-            ${colorize.bold("Timestamp")}: ${new Date(
-            timestamp * 1000
-          ).toISOString()}`
-        );
       }
     );
   });
 };
 
-// Get all activities from the database
+// READ all activities from the database
 export const readAllActivities = () => {
   return new Promise((resolve, reject) => {
     db.all(`SELECT * FROM activities`, (err, rows) => {
       if (err) reject(err);
       resolve(rows);
-      console.log(`${colorize.magenta("Retrieved all activities")}
-        ${colorize.bold("Number of activities")}: ${rows.length}`);
     });
   });
 };
 
-// Get a single activity from the database by its ID
+// READ a single activity from the database by its ID
 export const readActivityById = (id) => {
   return new Promise((resolve, reject) => {
     db.get(`SELECT * FROM activities WHERE id = ?`, [id], (err, row) => {
@@ -61,7 +50,7 @@ export const readActivityById = (id) => {
   });
 };
 
-// Get the last activity of a specific type from the database
+// READ the last activity of a specific activity_type from the database
 export const readLastActivityByType = (type_id) => {
   return new Promise((resolve, reject) => {
     db.get(
@@ -86,7 +75,7 @@ export const readLastActivityByType = (type_id) => {
   });
 };
 
-// Read all activities with pagination and limiting the number of results
+// READ all activities with pagination and limiting the number of results
 export const readActivitiesWithPagination = (limit, offset) => {
   return new Promise((resolve, reject) => {
     db.all(
@@ -108,10 +97,6 @@ export const readActivitiesWithPagination = (limit, offset) => {
       (err, rows) => {
         if (err) reject(err);
         resolve(rows);
-        console.log(`${colorize.magenta(
-          "Retrieved all activities with pagination"
-        )}
-        ${colorize.bold("Number of activities")}: ${rows.length}`);
       }
     );
   });
@@ -145,7 +130,7 @@ export const readActivitiesByTypeWithPagination = (type_id, limit, offset) => {
   });
 };
 
-// Update an existing activity in the database by its ID
+// UPDATE an existing activity in the database by its ID
 export const updateActivityById = (
   id,
   type_id,
@@ -161,31 +146,17 @@ export const updateActivityById = (
         if (err) reject(err);
 
         resolve(this.changes);
-
-        console.log(
-          `${colorize.blue("Updated activity")}: ${colorize.bold("ID")}: "${id}"
-            ${colorize.bold("New Value")}: 
-              ${colorize.bold("Type ID")}: "${type_id}"
-              ${colorize.bold("Description")}: "${description}"
-              ${colorize.bold("Status")}: "${status}"
-              ${colorize.bold("Timestamp")}: "${new Date(
-            timestamp * 1000
-          ).toISOString()}"`
-        );
       }
     );
   });
 };
 
-// Delete an activity from the database by its ID
+// DELETE an activity from the database by its ID
 export const deleteActivityById = (id) => {
   return new Promise((resolve, reject) => {
     db.run(`DELETE FROM activities WHERE id = ?`, id, function (err) {
       if (err) reject(err);
       resolve(this.changes);
-      console.log(
-        `${colorize.red("Deleted activity")}: ${colorize.bold("ID")}: "${id}"`
-      );
     });
   });
 };

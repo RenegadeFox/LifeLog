@@ -6,78 +6,81 @@ import {
   deleteCategoryById,
 } from "../models/categoryModel.js";
 
-// Create a new category in the database
+// ADD a new category in the database
 export const addCategory = async (req, res) => {
-  const isMultipleTypes = Array.isArray(req.body);
+  const isMultiple = Array.isArray(req.body);
 
   // Check if the request body is an array of categories to be created
-  if (isMultipleTypes) {
-    const categories = req.body;
+  if (isMultiple) {
+    const categoriesToAdd = req.body;
+
     try {
-      const ids = await Promise.all(
-        categories.map(async (category) => {
+      const newCategoryIds = await Promise.all(
+        categoriesToAdd.map(async (category) => {
           const { name } = category;
           return await createCategory(name);
         })
       );
-      res.status(201).send(ids);
+      res.status(201).send(newCategoryIds);
     } catch (err) {
       res.status(500).send(err.message);
     }
   } else {
     const { name } = req.body;
-    try {
-      const id = await createCategory(name);
 
-      res.status(201).send({ id });
+    try {
+      const newCategoryId = await createCategory(name);
+
+      res.status(201).send({ newCategoryId });
     } catch (err) {
       res.status(500).send(err.message);
     }
   }
 };
 
-// Get all categories from the database
+// GET all categories from the database
 export const getAllCategories = async (req, res) => {
   try {
     const allCategories = await readAllCategories();
+
     res.status(200).json(allCategories || []);
   } catch (err) {
     res.status(500).send(err.message);
   }
 };
 
-// Get a single category from the database by its ID
+// GET a single category from the database by its ID
 export const getCategoryById = async (req, res) => {
   const { id } = req.params;
 
   try {
     const category = await readCategoryById(id);
 
-    if (category) res.status(200).json(category);
-    else res.status(404).send(`Category with ID "${id}" not found`);
+    if (!category)
+      return res.status(404).send(`Category with ID "${id}" not found`);
+
+    return res.status(200).json(category);
   } catch (err) {
     res.status(500).send(err.message);
   }
 };
 
-// Update/edit a single category in the database by its ID
+// EDIT a single category in the database by its ID
 export const editCategoryById = async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
 
   // Return an error, if "name" is not provided in the request body
-  if (!name) {
-    return res.status(400).send("Please provide a name, for the category");
-  }
+  if (!name) return res.status(400).send("Missing name");
 
   // Update the category in the database
   try {
     // Check if the category exists before updating it
-    const originalCategory = await readCategoryById(id);
-    if (!originalCategory)
+    const oldCategory = await readCategoryById(id);
+    if (!oldCategory)
       return res.status(404).send(`Category with ID "${id}" not found`);
 
-    const changes = await updateCategoryById(id, name || originalCategory.name);
+    const changes = await updateCategoryById(id, name || oldCategory.name);
 
     return res.status(200).send({ changes });
   } catch (err) {
@@ -85,18 +88,19 @@ export const editCategoryById = async (req, res) => {
   }
 };
 
-// Delete an existing category from the database by its ID
+// REMOVE an existing category from the database by its ID
 export const removeCategoryById = async (req, res) => {
   const { id } = req.params;
 
   // Delete the category from the database
   try {
     // Check if the category exists before deleting it
-    const category = await readCategoryById(id);
-    if (!category)
+    const categoryToRemove = await readCategoryById(id);
+    if (!categoryToRemove)
       return res.status(404).send(`Category with ID "${id}" not found`);
 
     const changes = await deleteCategoryById(id);
+
     res.status(200).send({ changes });
   } catch (err) {
     res.status(500).send(err.message);

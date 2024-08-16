@@ -4,6 +4,7 @@ import activityRoutes from "./routes/activityRoutes.js";
 import activityTypeRoutes from "./routes/activityTypeRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import gameRoutes from "./routes/gameRoutes.js";
+import movieRoutes from "./routes/movieRoutes.js";
 import apiKeyAuth from "./middleware/auth.js";
 
 const app = express();
@@ -15,9 +16,10 @@ app.use(apiKeyAuth);
 app.use(bodyParser.json());
 app.use("/activities", activityRoutes);
 app.use("/activity-types", activityTypeRoutes);
-app.use("/games", gameRoutes);
 app.use("/categories", categoryRoutes);
+app.use("/games", gameRoutes);
+app.use("/movies", movieRoutes);
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

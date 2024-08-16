@@ -8,7 +8,7 @@ db.serialize(() => {
   );
 });
 
-// Add a new game to the database that can be logged
+// CREATE a new game to the database that can be logged
 export const createGame = (newGameName) => {
   return new Promise((resolve, reject) => {
     db.run(
@@ -17,51 +17,45 @@ export const createGame = (newGameName) => {
       function (err) {
         if (err) reject(err);
         resolve(this.lastID);
-        console.log(
-          `${colorize.green("Created game")}:
-          ${colorize.bold("ID")}: "${this.lastID}"
-          ${colorize.bold("Name")}: ${newGameName}`
-        );
       }
     );
   });
 };
 
-// Get all games from the database
+// READ all games from the database
 export const readAllGames = () => {
   return new Promise((resolve, reject) => {
     db.all("SELECT * FROM games", [], (err, rows) => {
       if (err) reject(err);
-      resolve(rows);
-      console.log(`${colorize.magenta("Retrieved all games")}
-        ${colorize.bold("Number of games")}: ${rows.length}`);
     });
   });
 };
 
-// Get a single game from the database by its ID
+// READ a single game from the database by its ID
 export const readGameById = (id) => {
   return new Promise((resolve, reject) => {
     db.get("SELECT * FROM games WHERE id = ?", [id], (err, row) => {
       if (err) reject(err);
       resolve(row);
-      console.log(`${colorize.magenta(`Retrieved game by ID: ${row.name}`)}`);
     });
   });
 };
 
-// Get a single game from the database by it's name
+// READ a single game from the database by it's name
 export const readGameByName = (name) => {
   return new Promise((resolve, reject) => {
-    db.get("SELECT * FROM games WHERE name = ?", [name], (err, row) => {
-      if (err) reject(err);
-      resolve(row);
-      console.log(`${colorize.magenta(`Retrieved game by name: ${name}`)}`);
-    });
+    db.get(
+      "SELECT * FROM games WHERE LOWER(name) = LOWER(?)",
+      [name],
+      (err, row) => {
+        if (err) reject(err);
+        resolve(row);
+      }
+    );
   });
 };
 
-// Update an existing game in the database by its ID
+// UPDATE an existing game in the database by its ID
 export const updateGameById = (id, newName) => {
   return new Promise((resolve, reject) => {
     db.run(
@@ -71,29 +65,18 @@ export const updateGameById = (id, newName) => {
         if (err) reject(err);
 
         resolve(this.changes);
-
-        console.log(
-          `${colorize.green("Updated game")}:
-          ${colorize.bold("ID")}: "${id}"
-          ${colorize.bold("New name")}: ${newName}`
-        );
       }
     );
   });
 };
 
-// Delete an existing game from the database by its ID
+// DELETE an existing game from the database by its ID
 export const deleteGameById = (id) => {
   return new Promise((resolve, reject) => {
     db.run("DELETE FROM games WHERE id = ?", [id], function (err) {
       if (err) reject(err);
 
       resolve(this.changes);
-
-      console.log(
-        `${colorize.red("Deleted game")}:
-        ${colorize.bold("ID")}: "${id}"`
-      );
     });
   });
 };
