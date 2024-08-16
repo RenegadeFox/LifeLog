@@ -60,7 +60,7 @@ export const readTvShowByTitle = (title) => {
 };
 
 // UPDATE an existing tv show in the database by its ID
-export const updateMovieById = (id, title) => {
+export const updateTvShowById = (id, title) => {
   return new Promise((resolve, reject) => {
     db.run(
       `UPDATE tv_shows SET title = ? WHERE id = ?`,
@@ -75,7 +75,7 @@ export const updateMovieById = (id, title) => {
 };
 
 // DELETE an existing tv show from the database by its ID
-export const deleteMovieById = (id) => {
+export const deleteTvShowById = (id) => {
   return new Promise((resolve, reject) => {
     db.run(`DELETE FROM tv_shows WHERE id = ?`, [id], function (err) {
       if (err) reject(err);

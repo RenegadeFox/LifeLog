@@ -10,6 +10,8 @@ import {
 
 const router = express.Router();
 
+// All routes start with http://${URL}/games
+
 router.post("/", addGame); // CREATE a new game
 router.get("/", getAllGames); // READ all games
 router.get("/:id", getGameById); // READ a single game by ID

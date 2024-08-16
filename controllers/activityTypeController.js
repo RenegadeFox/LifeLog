@@ -359,6 +359,7 @@ export const getMenuItemsV3 = async (req, res) => {
                 timeElapsed = getTimeDifference(lastActivity.timestamp);
                 const isGaming = activityType.name === "gaming";
                 const isMovie = activityType.name === "watching movie";
+                const isTvShow = activityType.name === "watching TV";
 
                 // If the activity type is a start activity, set the label to the end activity label
                 if (lastActivity.status === "start") {
@@ -373,6 +374,11 @@ export const getMenuItemsV3 = async (req, res) => {
                       /watching movie/i,
                       ""
                     )}${lastActivity.description.split("Movie: ")[1]}`;
+                  } else if (isTvShow) {
+                    activityLabel = `${activityType.end_label.replace(
+                      /watching TV/i,
+                      ""
+                    )}${lastActivity.description.split("Show: ")[1]}`;
                   } else {
                     activityLabel = activityType.end_label;
                   }

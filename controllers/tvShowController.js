@@ -53,7 +53,7 @@ export const addTvShow = async (req, res) => {
       if (tvShow)
         return res.status(409).send(`TV Show "${title}" already exists`);
 
-      const tvShowId = await createTvShow(title, newWatched);
+      const tvShowId = await createTvShow(title);
 
       res.status(201).send({ tvShowId });
     } catch (err) {
@@ -120,7 +120,7 @@ export const editTvShowById = async (req, res) => {
     // Only update the fields that are provided in the request body
     const newTitle = title || oldTvShow.title;
 
-    const changes = await updateTvShowById(id, newTitle, newWatched);
+    const changes = await updateTvShowById(id, newTitle);
     return res.status(200).send({ changes });
   } catch (err) {
     return res.status(500).send(err.message);
