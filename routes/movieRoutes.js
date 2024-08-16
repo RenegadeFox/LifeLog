@@ -6,9 +6,11 @@ import {
   getMovieByTitle,
   editMovieById,
   removeMovieById,
-} from "../controllers/moviesController.js";
+} from "../controllers/movieController.js";
 
 const router = express.Router();
+
+// All routes start with http://${URL}/movies
 
 router.post("/", addMovie); // CREATE a new movie
 router.get("/", getAllMovies); // READ all movies

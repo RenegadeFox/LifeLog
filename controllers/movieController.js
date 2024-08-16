@@ -5,7 +5,7 @@ import {
   readMovieByTitle,
   updateMovieById,
   deleteMovieById,
-} from "../models/moviesModel.js";
+} from "../models/movieModel.js";
 
 // ADD a new movie in the database
 export const addMovie = async (req, res) => {
