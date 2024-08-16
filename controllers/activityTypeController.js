@@ -376,9 +376,11 @@ export const getMenuItemsV3 = async (req, res) => {
 
               // Check if the activity type is uncategorized and add it to the uncategorizedItems object
               if (category.name === "Uncategorized") {
-                uncategorizedItems.push(
-                  `${activityType.name} (${timeElapsed})`
-                );
+                uncategorizedItems.push({
+                  name: activityType.name,
+                  timeElapsed,
+                  timestamp: lastActivity ? lastActivity.timestamp : 0,
+                });
                 return { name: null, timeElapsed: null };
               }
 
@@ -408,6 +410,12 @@ export const getMenuItemsV3 = async (req, res) => {
       })
     );
 
+    const sortByTimestamp = (a, b) => {
+      if (a.timestamp === 0) return 1;
+      if (b.timestamp === 0) return -1;
+      return a.timestamp - b.timestamp;
+    };
+
     // Create an object with the category as the key and the activity types as an array of values
     menuItems.forEach((menuItem) => {
       // If the category is uncategorized, skip it
@@ -423,7 +431,15 @@ export const getMenuItemsV3 = async (req, res) => {
     res.status(200).json({
       started: startedMenuItems,
       ...categoriesItems,
-      uncategorized: uncategorizedItems,
+      uncategorized: [
+        ...uncategorizedItems
+          .filter((item) => item.timestamp === 0)
+          .map((item) => `${item.name} (${item.timeElapsed})`),
+        ...uncategorizedItems
+          .filter((item) => item.timestamp !== 0)
+          .sort(sortByTimestamp)
+          .map((item) => `${item.name} (${item.timeElapsed})`),
+      ],
       ids: itemIds,
     });
   } catch (err) {
