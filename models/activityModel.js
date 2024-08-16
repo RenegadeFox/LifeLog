@@ -1,5 +1,4 @@
 import sqlite3 from "sqlite3";
-import { colorize } from "../helpers/colors.js";
 const db = new sqlite3.Database("./database.db");
 
 // Create the "activities" table in the database
