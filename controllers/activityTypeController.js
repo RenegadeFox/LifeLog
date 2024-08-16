@@ -386,6 +386,11 @@ export const getMenuItemsV3 = async (req, res) => {
 
               // If the activity type is NOT a toggle activity, return the activity type name
               if (!activityType.toggle) {
+                itemIds.push({
+                  id: activityType.id,
+                  name: activityLabel,
+                  status: "none",
+                });
                 return { name: activityType.name, timeElapsed };
               }
 
@@ -393,6 +398,11 @@ export const getMenuItemsV3 = async (req, res) => {
 
               // If there are no logged activities of this type, return the start activity
               if (!lastActivity) {
+                itemIds.push({
+                  id: activityType.id,
+                  name: activityLabel,
+                  status: "start",
+                });
                 return { name: activityType.start_label, timeElapsed };
               }
 
