@@ -55,8 +55,8 @@ export const getPaginatedActivities = async (req, res) => {
     const formattedRows = rows.map((row) => {
       let label = "";
       if (row.status === "none") label = row.activity_type;
-      else if (row.status === "start") label = row.start_label;
-      else if (row.status === "end") label = row.end_label;
+      else if (row.status === "not-started") label = row.start_label;
+      else if (row.status === "started") label = row.end_label;
 
       return {
         id: row.id,
@@ -90,8 +90,8 @@ export const getActivitiesByTypeWithPagination = async (req, res) => {
     const formattedRows = rows.map((row) => {
       let label = "";
       if (row.status === "none") label = row.activity_type;
-      else if (row.status === "start") label = row.start_label;
-      else if (row.status === "end") label = row.end_label;
+      else if (row.status === "not-started") label = row.start_label;
+      else if (row.status === "started") label = row.end_label;
 
       return {
         id: row.id,
