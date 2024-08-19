@@ -1,6 +1,9 @@
 import { readAllActivityTypes } from "../models/activityTypeModel.js";
 import { readAllCategories } from "../models/categoryModel.js";
-import { processActivityTypes } from "../helpers/processActivityTypes.js";
+import {
+  processActivityTypes,
+  processActivityTypesV2,
+} from "../helpers/processActivityTypes.js";
 import { sortByTimestamp } from "../helpers/sortByTimestamp.js";
 
 const getRelatedActivityTypes = (types, category) => {
