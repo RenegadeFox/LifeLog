@@ -100,14 +100,16 @@ export const processActivityTypes = async (activityTypes, category) => {
       // Add the activity type details to the itemIds array
       itemIds.push({
         id: activityType.id,
-        name: activityLabel,
+        name: `${activityType.emoji} ${activityLabel}`,
         status: activityStatus,
       });
 
       // Process it if it's a started activity
       if (isStartedActivity) {
         // Add the started activity to the startedMenuItems array
-        startedMenuItems.push(`${activityLabel} (${timeElapsed})`);
+        startedMenuItems.push(
+          `${activityType.emoji} ${activityLabel} (${timeElapsed})`
+        );
         // Return null for the activity name and time elapsed to skip it
         return { name: null, timeElapsed: null };
       }
@@ -116,7 +118,7 @@ export const processActivityTypes = async (activityTypes, category) => {
       if (isUncategorized) {
         // Add the uncategorized activity to the uncategorizedItems array
         uncategorizedItems.push({
-          name: activityLabel,
+          name: `${activityType.emoji} ${activityLabel}`,
           timestamp: lastActivity ? lastActivity.timestamp : 0,
           timeElapsed,
         });
@@ -125,7 +127,7 @@ export const processActivityTypes = async (activityTypes, category) => {
       }
 
       // Return the activity type name and time elapsed
-      return { name: activityLabel, timeElapsed };
+      return { name: `${activityType.emoji} ${activityLabel}`, timeElapsed };
     })
   ); // End of Promise.all
 
