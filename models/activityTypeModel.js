@@ -52,7 +52,8 @@ export const readAllActivityTypes = () => {
         activity_types.toggle,
         activity_types.start_label,
         activity_types.end_label,
-        categories.name AS category
+        categories.name AS category,
+        activity_types.emoji AS emoji
       FROM activity_types
       JOIN categories ON activity_types.category_id = categories.id`,
       [],

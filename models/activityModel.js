@@ -59,7 +59,8 @@ export const readLastActivityByType = (type_id) => {
         activities.status,
         activities.description,
         timestamp,
-        categories.name AS category
+        categories.name AS category,
+        activity_types.emoji AS emoji
       FROM activities
       JOIN activity_types ON activities.type_id = activity_types.id
       JOIN categories ON activity_types.category_id = categories.id
