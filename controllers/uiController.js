@@ -49,7 +49,7 @@ export const getMenuItems = async (req, res) => {
         // Filter out any activity types that don't have a name or timeElapsed (e.g. uncategorized items or started items)
         .filter((activityType) => activityType.name && activityType.timeElapsed)
         .map((activityType) => {
-          return `${activityType.name} (${activityType.timeElapsed})`;
+          return `${activityType.emoji} ${activityType.name} (${activityType.timeElapsed})`;
         });
     });
 
@@ -59,11 +59,11 @@ export const getMenuItems = async (req, res) => {
       uncategorized: [
         ...uncategorizedMenuItems
           .filter((item) => item.timestamp === 0)
-          .map((item) => `${item.name} (${item.timeElapsed})`),
+          .map((item) => `${item.emoji} ${item.name} (${item.timeElapsed})`),
         ...uncategorizedMenuItems
           .filter((item) => item.timestamp !== 0)
           .sort(sortByTimestamp)
-          .map((item) => `${item.name} (${item.timeElapsed})`),
+          .map((item) => `${item.emoji} ${item.name} (${item.timeElapsed})`),
       ],
       ids: menuItemIds,
     });
