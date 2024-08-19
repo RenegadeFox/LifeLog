@@ -68,3 +68,87 @@ export const getMenuItems = async (req, res) => {
     res.status(500).send(err.message);
   }
 };
+
+export const getMenuItemsV2 = async (req, res) => {
+  try {
+    const CATEGORIES = await readAllCategories();
+    const ACTIVITY_TYPES = await readAllActivityTypes();
+
+    const categoriesItems = {};
+    let startedMenuItems = [];
+    let uncategorizedMenuItems = [];
+
+    const menuItems = await Promise.all(
+      CATEGORIES.map(async (category) => {
+        const relatedActivityTypes = getRelatedActivityTypes(
+          ACTIVITY_TYPES,
+          category.name
+        );
+
+        const { activityTypes, started, uncategorized } =
+          await processActivityTypesV2(relatedActivityTypes, category.name);
+
+        startedMenuItems = started.concat(startedMenuItems);
+        uncategorizedMenuItems = uncategorized.concat(uncategorizedMenuItems);
+
+        return {
+          category: category.name,
+          activityTypes,
+        };
+      })
+    ); // End of Promise.all
+
+    // Create an object with the category as the key and the activity types as an array of values
+    menuItems.forEach((menuItem) => {
+      // If the category is uncategorized, skip it
+      if (menuItem.category === "Uncategorized") return;
+      categoriesItems[menuItem.category] = menuItem.activityTypes
+        // Filter out any activity types that don't have a name or timeElapsed (e.g. uncategorized items or started items)
+        .filter((activityType) => activityType.name && activityType.timeElapsed)
+        .map((item) => {
+          return {
+            type_id: item.type_id,
+            name: item.name,
+            timestamp: item.timestamp,
+            timeElapsed: item.timeElapsed,
+            status: item.status,
+            emoji: item.emoji,
+          };
+        });
+    });
+
+    res.status(200).json({
+      started: startedMenuItems.sort(sortByTimestamp),
+      ...categoriesItems,
+      uncategorized: [
+        ...uncategorizedMenuItems
+          .filter((item) => item.timestamp === 0)
+          .map((item) => {
+            return {
+              type_id: item.type_id,
+              name: item.name,
+              timestamp: item.timestamp,
+              timeElapsed: item.timeElapsed,
+              status: item.status,
+              emoji: item.emoji,
+            };
+          }),
+        ...uncategorizedMenuItems
+          .filter((item) => item.timestamp !== 0)
+          .sort(sortByTimestamp)
+          .map((item) => {
+            return {
+              type_id: item.type_id,
+              name: item.name,
+              timestamp: item.timestamp,
+              timeElapsed: item.timeElapsed,
+              status: item.status,
+              emoji: item.emoji,
+            };
+          }),
+      ],
+    });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
