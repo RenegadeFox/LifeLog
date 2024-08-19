@@ -115,7 +115,7 @@ export const getMenuItemsV2 = async (req, res) => {
             timestamp: item.timestamp,
             timeElapsed: item.timeElapsed,
             status: item.status,
-            emoji: item.emoji,
+            // emoji: item.emoji,
           };
         });
     });
@@ -133,7 +133,7 @@ export const getMenuItemsV2 = async (req, res) => {
               timestamp: item.timestamp,
               timeElapsed: item.timeElapsed,
               status: item.status,
-              emoji: item.emoji,
+              // emoji: item.emoji,
             };
           }),
         ...uncategorizedMenuItems
@@ -146,7 +146,7 @@ export const getMenuItemsV2 = async (req, res) => {
               timestamp: item.timestamp,
               timeElapsed: item.timeElapsed,
               status: item.status,
-              emoji: item.emoji,
+              // emoji: item.emoji,
             };
           }),
       ],
