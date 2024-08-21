@@ -283,10 +283,23 @@ export const getMenuForShortcuts = async (req, res) => {
         );
 
         // Add the category and it's items to the item data object
-        ITEM_DATA[key] = thisItem;
+        ITEM_DATA[key] = {
+          isCategory: true,
+          labels: thisItem
+            .map((subItem) =>
+              formatLabel({
+                name: subItem.name,
+                subtitle: subItem.timeElapsed,
+                icon: subItem.emoji,
+              })
+            )
+            .join("\n"),
+          data: thisItem,
+        };
       } else {
         // It's the "started" or "uncategorized" items
         thisItem.forEach((item) => {
+          item.isCategory = false;
           ITEM_DATA[item.name] = item;
         });
       }
