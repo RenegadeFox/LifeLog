@@ -282,6 +282,17 @@ export const getMenuForShortcuts = async (req, res) => {
           })
         );
 
+        // Format the data object so the key is the category name
+        // and the value is the items in that formatted the same
+        const formattedSubItems = {};
+
+        thisItem.forEach((subItem) => {
+          formattedSubItems[subItem.name] = {
+            ...subItem,
+            isCategory: false,
+          };
+        });
+
         // Add the category and it's items to the item data object
         ITEM_DATA[key] = {
           isCategory: true,
@@ -294,7 +305,7 @@ export const getMenuForShortcuts = async (req, res) => {
               })
             )
             .join("\n"),
-          data: thisItem,
+          data: formattedSubItems,
         };
       } else {
         // It's the "started" or "uncategorized" items
