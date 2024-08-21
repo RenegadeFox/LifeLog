@@ -114,7 +114,7 @@ export const getMenuItemsV2 = async (req, res) => {
             name: item.name,
             timestamp: item.timestamp,
             timeElapsed: item.timeElapsed,
-            status: item.status,
+            status: item.status || "none",
             emoji: item.emoji,
           };
         });
@@ -132,7 +132,7 @@ export const getMenuItemsV2 = async (req, res) => {
               name: item.name,
               timestamp: item.timestamp,
               timeElapsed: item.timeElapsed,
-              status: item.status,
+              status: "none",
               emoji: item.emoji,
             };
           }),
@@ -145,7 +145,7 @@ export const getMenuItemsV2 = async (req, res) => {
               name: item.name,
               timestamp: item.timestamp,
               timeElapsed: item.timeElapsed,
-              status: item.status,
+              status: "none",
               emoji: item.emoji,
             };
           }),
