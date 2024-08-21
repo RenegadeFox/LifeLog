@@ -261,6 +261,7 @@ export const processActivityTypesV2 = async (activityTypes, category) => {
           name: activityLabel,
           timestamp: lastActivity ? lastActivity.timestamp : 0,
           timeElapsed,
+          status: activityStatus,
         });
         // Return null for the activity name and time elapsed to skip it
         return { name: null, timeElapsed: null };
@@ -271,9 +272,9 @@ export const processActivityTypesV2 = async (activityTypes, category) => {
         type_id: activityType.id,
         emoji: activityType.emoji,
         name: activityLabel,
+        timestamp: lastActivity ? lastActivity.timestamp : 0,
         timeElapsed,
         status: activityStatus,
-        timestamp: lastActivity ? lastActivity.timestamp : 0,
       };
     })
   ); // End of Promise.all

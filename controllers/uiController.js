@@ -161,9 +161,23 @@ export const getMenuForShortcuts = async (req, res) => {
     const CATEGORIES = await readAllCategories();
     const ACTIVITY_TYPES = await readAllActivityTypes();
 
-    const categoriesItems = {};
     let startedMenuItems = [];
     let uncategorizedMenuItems = [];
+    const CATEGORY_ITEMS = {};
+    const ITEM_DATA = {};
+    const CATEGORY_LABELS = [];
+
+    const formatLabel = ({ name, subtitle, icon }) => {
+      // Define the output format for each item
+      const itemOutput = "title: [TITLE]\nsub: [SUBTITLE]\nicon: [ICON]";
+
+      return (
+        itemOutput
+          .replace("[TITLE]", name)
+          .replace("[SUBTITLE]", subtitle)
+          .replace("[ICON]", icon) + "\n"
+      );
+    };
 
     const menuItems = await Promise.all(
       CATEGORIES.map(async (category) => {
@@ -189,7 +203,7 @@ export const getMenuForShortcuts = async (req, res) => {
     menuItems.forEach((menuItem) => {
       // If the category is uncategorized, skip it
       if (menuItem.category === "Uncategorized") return;
-      categoriesItems[menuItem.category] = menuItem.activityTypes
+      CATEGORY_ITEMS[menuItem.category] = menuItem.activityTypes
         // Filter out any activity types that don't have a name or timeElapsed (e.g. uncategorized items or started items)
         .filter((activityType) => activityType.name && activityType.timeElapsed)
         .map((item) => {
@@ -204,70 +218,69 @@ export const getMenuForShortcuts = async (req, res) => {
         });
     });
 
-    const menuItemsOutput = {
-      started: startedMenuItems.sort(sortByTimestamp),
-      ...categoriesItems,
-      uncategorized: [
-        ...uncategorizedMenuItems
-          .filter((item) => item.timestamp === 0)
-          .map((item) => {
-            return {
-              type_id: item.type_id,
-              name: item.name,
-              timestamp: item.timestamp,
-              timeElapsed: item.timeElapsed,
-              status: "none",
-              emoji: item.emoji,
-            };
-          }),
-        ...uncategorizedMenuItems
-          .filter((item) => item.timestamp !== 0)
-          .sort(sortByTimestamp)
-          .map((item) => {
-            return {
-              type_id: item.type_id,
-              name: item.name,
-              timestamp: item.timestamp,
-              timeElapsed: item.timeElapsed,
-              status: "none",
-              emoji: item.emoji,
-            };
-          }),
-      ],
-    };
-
-    const formatLabels = (items, isCategory = false) => {
-      // Check if the items array is empty
-      if (items.length === 0) return [];
-
-      // Define the output format for each item
-      const itemOutput = "title: [TITLE]\nsub: [SUBTITLE]\nicon: [ICON]";
-
-      // Otherwise, map through the items and format the labels
-      // for the "Quick Menu" action from Toolbox Pro
-      return items.map((item) => {
-        return (
-          itemOutput
-            .replace("[TITLE]", item.name)
-            .replace("[SUBTITLE]", item.timeElapsed)
-            .replace("[ICON]", isCategory ? "📁" : item.emoji) + "\n"
-        );
+    const STARTED_ITEMS = startedMenuItems.sort(sortByTimestamp);
+    const UNCAT_ITEMS = [
+      ...uncategorizedMenuItems
+        .filter((item) => item.timestamp === 0)
+        .map((item) => {
+          return {
+            type_id: item.type_id,
+            name: item.name,
+            timestamp: item.timestamp,
+            timeElapsed: item.timeElapsed,
+            status: "none",
+            emoji: item.emoji,
+          };
+        }),
+      ...uncategorizedMenuItems
+        .filter((item) => item.timestamp !== 0)
+        .sort(sortByTimestamp)
+        .map((item) => {
+          return {
+            type_id: item.type_id,
+            name: item.name,
+            timestamp: item.timestamp,
+            timeElapsed: item.timeElapsed,
+            status: "none",
+            emoji: item.emoji,
+          };
+        }),
+    ];
+    const STARTED_LABELS = STARTED_ITEMS.map((item) => {
+      return formatLabel({
+        name: item.name,
+        subtitle: item.timeElapsed,
+        icon: item.emoji,
       });
+    });
+    const UNCAT_LABELS = UNCAT_ITEMS.map((item) => {
+      return formatLabel({
+        name: item.name,
+        subtitle: item.timeElapsed,
+        icon: item.emoji,
+      });
+    });
+
+    const ALL_ITEMS = {
+      started: STARTED_ITEMS,
+      ...CATEGORY_ITEMS,
+      uncategorized: UNCAT_ITEMS,
     };
 
-    const CATEGORY_LABELS = [];
-    const ITEM_DATA = {};
-    const UNCAT_LABELS = formatLabels(menuItemsOutput.uncategorized);
-    const STARTED_LABELS = formatLabels(menuItemsOutput.started);
-
-    for (const key in menuItemsOutput) {
-      const thisItem = menuItemsOutput[key];
+    for (const key in ALL_ITEMS) {
+      const thisItem = ALL_ITEMS[key];
 
       if (
         key.toLowerCase() !== "started" &&
         key.toLowerCase() !== "uncategorized"
       ) {
-        CATEGORY_LABELS.push(formatLabels(thisItem, true));
+        CATEGORY_LABELS.push(
+          formatLabel({
+            name: key,
+            subtitle: `${thisItem.length} activities`,
+            icon: "📂",
+          })
+        );
 
         // Add the category and it's items to the item data object
         ITEM_DATA[key] = thisItem;
