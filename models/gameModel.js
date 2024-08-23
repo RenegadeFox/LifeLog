@@ -3,7 +3,7 @@ const db = new sqlite3.Database("./database.db");
 
 db.serialize(() => {
   db.run(
-    "CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY, name TEXT)"
+    "CREATE TABLE IF NOT EXISTS games (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)"
   );
 });
 

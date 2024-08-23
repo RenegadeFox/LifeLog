@@ -1,4 +1,8 @@
-import { readAllActivityTypes } from "../models/activityTypeModel.js";
+import {
+  readAllActivityTypes,
+  readActivityTypesByCategory,
+} from "../models/activityTypeModel.js";
+import { readLastActivityByType } from "../models/activityModel.js";
 import { readAllCategories } from "../models/categoryModel.js";
 import {
   processActivityTypes,
@@ -74,82 +78,66 @@ export const getMenuItems = async (req, res) => {
 
 export const getMenuItemsV2 = async (req, res) => {
   try {
-    const CATEGORIES = await readAllCategories();
-    const ACTIVITY_TYPES = await readAllActivityTypes();
+    // Will hold all of the activities that have been started
+    const STARTED_ITEMS = [];
+    // Will hold all of the activities that are uncategorized
+    const UNCAT_ITEMS = await readActivityTypesByCategory(5);
+    // Get all categories, excluding the "Uncategorized" category
+    const ALL_CATEGORIES = await readAllCategories();
 
-    const categoriesItems = {};
-    let startedMenuItems = [];
-    let uncategorizedMenuItems = [];
+    const categoriesAndItems = await Promise.all(
+      ALL_CATEGORIES.filter(
+        (cat) => cat.name.toLowerCase() !== "uncategorized"
+      ).map(async (category) => {
+        // Get all activity types for the current category
+        const activityTypes = await readActivityTypesByCategory(category.id);
 
-    const menuItems = await Promise.all(
-      CATEGORIES.map(async (category) => {
-        const relatedActivityTypes = getRelatedActivityTypes(
-          ACTIVITY_TYPES,
-          category.name
+        // For each activity type, get the last activity of that type
+        const lastActivities = await Promise.all(
+          activityTypes.map(async (type) => {
+            const lastActivity = await readLastActivityByType(type.id);
+            if (!lastActivity) return null;
+
+            if (lastActivity.toggle) {
+              lastActivity.label =
+                lastActivity.status === "started"
+                  ? type.end_label
+                  : type.start_label;
+            } else {
+              lastActivity.label = lastActivity.name;
+            }
+
+            return lastActivity;
+          })
         );
 
-        const { activityTypes, started, uncategorized } =
-          await processActivityTypesV2(relatedActivityTypes, category.name);
-
-        startedMenuItems = started.concat(startedMenuItems);
-        uncategorizedMenuItems = uncategorized.concat(uncategorizedMenuItems);
-
         return {
+          id: category.id,
           category: category.name,
-          activityTypes,
+          lastActivities,
         };
       })
-    ); // End of Promise.all
+    );
 
-    // Create an object with the category as the key and the activity types as an array of values
-    menuItems.forEach((menuItem) => {
-      // If the category is uncategorized, skip it
-      if (menuItem.category === "Uncategorized") return;
-      categoriesItems[menuItem.category] = menuItem.activityTypes
-        // Filter out any activity types that don't have a name or timeElapsed (e.g. uncategorized items or started items)
-        .filter((activityType) => activityType.name && activityType.timeElapsed)
-        .map((item) => {
-          return {
-            type_id: item.type_id,
-            name: item.name,
-            timestamp: item.timestamp,
-            timeElapsed: item.timeElapsed,
-            status: item.status || "none",
-            emoji: item.emoji,
-          };
-        });
+    categoriesAndItems.forEach((item) => {
+      item.lastActivities.forEach((activity) => {
+        if (!activity) return;
+
+        if (activity.status === "started") {
+          activity.label = activity.end_label;
+          STARTED_ITEMS.push(activity);
+          return;
+        }
+      });
     });
 
     res.status(200).json({
-      started: startedMenuItems.sort(sortByTimestamp),
-      ...categoriesItems,
-      uncategorized: [
-        ...uncategorizedMenuItems
-          .filter((item) => item.timestamp === 0)
-          .map((item) => {
-            return {
-              type_id: item.type_id,
-              name: item.name,
-              timestamp: item.timestamp,
-              timeElapsed: item.timeElapsed,
-              status: "none",
-              emoji: item.emoji,
-            };
-          }),
-        ...uncategorizedMenuItems
-          .filter((item) => item.timestamp !== 0)
-          .sort(sortByTimestamp)
-          .map((item) => {
-            return {
-              type_id: item.type_id,
-              name: item.name,
-              timestamp: item.timestamp,
-              timeElapsed: item.timeElapsed,
-              status: "none",
-              emoji: item.emoji,
-            };
-          }),
-      ],
+      started: STARTED_ITEMS,
+      categories: categoriesAndItems,
+      uncategorized: UNCAT_ITEMS.map((item) => {
+        item.label = item.name;
+        return item;
+      }),
     });
   } catch (err) {
     res.status(500).send(err.message);

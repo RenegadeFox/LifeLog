@@ -5,7 +5,7 @@ const db = new sqlite3.Database("./database.db");
 db.serialize(() => {
   db.run(
     `CREATE TABLE IF NOT EXISTS activity_types (
-      id INTEGER PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT,
       toggle BOOLEAN DEFAULT 0,
       start_label TEXT,
@@ -53,10 +53,37 @@ export const readAllActivityTypes = () => {
         activity_types.start_label,
         activity_types.end_label,
         categories.name AS category,
+        categories.id AS category_id,
         activity_types.emoji AS emoji
       FROM activity_types
       JOIN categories ON activity_types.category_id = categories.id`,
       [],
+      (err, rows) => {
+        if (err) reject(err);
+
+        resolve(rows);
+      }
+    );
+  });
+};
+
+// READ all activity types based on the category_id from the database
+export const readActivityTypesByCategory = (category_id) => {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT 
+        activity_types.id,
+        activity_types.name,
+        activity_types.toggle,
+        activity_types.start_label,
+        activity_types.end_label,
+        categories.name AS category,
+        categories.id AS category_id,
+        activity_types.emoji AS emoji
+      FROM activity_types
+      JOIN categories ON activity_types.category_id = categories.id
+      WHERE category_id = ?`,
+      [category_id],
       (err, rows) => {
         if (err) reject(err);
 
