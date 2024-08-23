@@ -109,14 +109,16 @@ export const getMenuItemsV2 = async (req, res) => {
                 category: category.name,
                 category_id: category.id,
                 emoji: type.emoji,
+                label: type.toggle ? type.start_label : type.name,
               };
             }
 
             if (lastActivity.toggle) {
-              lastActivity.label =
-                lastActivity.status === "started"
-                  ? type.end_label
-                  : type.start_label;
+              if (lastActivity.status === "started")
+                lastActivity.label =
+                  lastActivity.status === "started"
+                    ? type.end_label
+                    : type.start_label;
             } else {
               lastActivity.label = lastActivity.name;
             }
@@ -128,7 +130,13 @@ export const getMenuItemsV2 = async (req, res) => {
         return {
           id: category.id,
           category: category.name,
-          lastActivities: lastActivities,
+          lastActivities: lastActivities
+            .filter((item) => item.status !== "started")
+            .map((activity) => {
+              activity.label = activity.toggle
+                ? activity.start_label
+                : activity.name;
+            }),
         };
       })
     );
