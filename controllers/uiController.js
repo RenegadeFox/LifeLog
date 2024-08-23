@@ -109,6 +109,7 @@ export const getMenuItemsV2 = async (req, res) => {
                 start_label: type.start_label,
                 end_label: type.end_label,
                 status: type.toggle ? "not-started" : "none",
+                toggle: type.toggle,
                 description: "",
                 timestamp: 0,
                 category: category.name,
@@ -136,10 +137,38 @@ export const getMenuItemsV2 = async (req, res) => {
       })
     );
 
+    // Format the uncategorized items so they match the format of the categorized items
+    const formattedUncatItems = await Promise.all(
+      UNCAT_ITEMS.map(async (item) => {
+        const lastActivity = await readLastActivityByType(item.id);
+        // Check if there is a last activity for this type at all
+        if (!lastActivity) {
+          // There is no last activity for this type
+          return {
+            id: item.id,
+            activity_type: item.name,
+            type_id: item.id,
+            start_label: item.start_label,
+            end_label: item.end_label,
+            status: item.toggle ? "not-started" : "none",
+            toggle: item.toggle,
+            description: "",
+            timestamp: 0,
+            category: category.name,
+            category_id: category.id,
+            emoji: item.emoji,
+            label: item.toggle ? item.start_label : item.name,
+          };
+        }
+
+        return lastActivity;
+      })
+    );
+
     res.status(200).json({
       started: STARTED_ITEMS,
       categories: categoriesAndItems,
-      uncategorized: UNCAT_ITEMS,
+      uncategorized: formattedUncatItems,
     });
   } catch (err) {
     res.status(500).send(err.message);

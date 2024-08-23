@@ -60,6 +60,7 @@ export const readLastActivityByType = (type_id) => {
         activity_types.start_label AS start_label,
         activity_types.end_label AS end_label,
         activities.status,
+        activity_types.toggle,
         activities.description,
         activities.timestamp,
         categories.name AS category,
