@@ -78,25 +78,30 @@ export const getMenuItems = async (req, res) => {
 
 export const getMenuItemsV2 = async (req, res) => {
   try {
+    // ID for the uncategorized category
+    const UNCAT_ID = 2;
     // Will hold all of the activities that have been started
     const STARTED_ITEMS = [];
     // Will hold all of the activities that are uncategorized
-    const UNCAT_ITEMS = await readActivityTypesByCategory(2);
+    const UNCAT_ITEMS = await readActivityTypesByCategory(UNCAT_ID);
     // Get all categories, excluding the "Uncategorized" category
     const ALL_CATEGORIES = await readAllCategories();
+    // Get all categories, excluding "Uncategorized"
+    const USED_CATEGORIES = ALL_CATEGORIES.filter((cat) => cat.id !== UNCAT_ID);
 
     const categoriesAndItems = await Promise.all(
-      ALL_CATEGORIES.filter(
-        (cat) => cat.name.toLowerCase() !== "uncategorized"
-      ).map(async (category) => {
+      USED_CATEGORIES.map(async (category) => {
         // Get all activity types for the current category
         const activityTypes = await readActivityTypesByCategory(category.id);
 
         // For each activity type, get the last activity of that type
         const lastActivities = await Promise.all(
           activityTypes.map(async (type) => {
+            // Get the last activity for the current type
             const lastActivity = await readLastActivityByType(type.id);
+            // Check if there is a last activity for this type at all
             if (!lastActivity) {
+              // There is no last activity for this type
               return {
                 id: type.id,
                 activity_type: type.name,
@@ -113,16 +118,6 @@ export const getMenuItemsV2 = async (req, res) => {
               };
             }
 
-            if (lastActivity.toggle) {
-              if (lastActivity.status === "started")
-                lastActivity.label =
-                  lastActivity.status === "started"
-                    ? type.end_label
-                    : type.start_label;
-            } else {
-              lastActivity.label = lastActivity.name;
-            }
-
             return lastActivity;
           })
         );
@@ -130,36 +125,21 @@ export const getMenuItemsV2 = async (req, res) => {
         return {
           id: category.id,
           category: category.name,
-          lastActivities: lastActivities
-            .filter((item) => item.status !== "started")
-            .map((activity) => {
-              activity.label = activity.toggle
-                ? activity.start_label
-                : activity.name;
-            }),
+          lastActivities: lastActivities.filter((item) => {
+            if (item.status === "started") {
+              STARTED_ITEMS.push(item);
+              return false;
+            }
+            return true;
+          }),
         };
       })
     );
 
-    categoriesAndItems.forEach((item) => {
-      item.lastActivities.forEach((activity) => {
-        if (!activity) return;
-
-        if (activity.status === "started") {
-          activity.label = activity.end_label;
-          STARTED_ITEMS.push(activity);
-          return;
-        }
-      });
-    });
-
     res.status(200).json({
       started: STARTED_ITEMS,
       categories: categoriesAndItems,
-      uncategorized: UNCAT_ITEMS.map((item) => {
-        item.label = item.name;
-        return item;
-      }),
+      uncategorized: UNCAT_ITEMS,
     });
   } catch (err) {
     res.status(500).send(err.message);
