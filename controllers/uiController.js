@@ -81,7 +81,7 @@ export const getMenuItemsV2 = async (req, res) => {
     // Will hold all of the activities that have been started
     const STARTED_ITEMS = [];
     // Will hold all of the activities that are uncategorized
-    const UNCAT_ITEMS = await readActivityTypesByCategory(5);
+    const UNCAT_ITEMS = await readActivityTypesByCategory(2);
     // Get all categories, excluding the "Uncategorized" category
     const ALL_CATEGORIES = await readAllCategories();
 
@@ -96,7 +96,21 @@ export const getMenuItemsV2 = async (req, res) => {
         const lastActivities = await Promise.all(
           activityTypes.map(async (type) => {
             const lastActivity = await readLastActivityByType(type.id);
-            if (!lastActivity) return null;
+            if (!lastActivity) {
+              return {
+                id: type.id,
+                activity_type: type.name,
+                type_id: type.id,
+                start_label: type.start_label,
+                end_label: type.end_label,
+                status: type.toggle ? "not-started" : "none",
+                description: "",
+                timestamp: 0,
+                category: category.name,
+                category_id: category.id,
+                emoji: type.emoji,
+              };
+            }
 
             if (lastActivity.toggle) {
               lastActivity.label =
@@ -114,7 +128,7 @@ export const getMenuItemsV2 = async (req, res) => {
         return {
           id: category.id,
           category: category.name,
-          lastActivities,
+          lastActivities: lastActivities,
         };
       })
     );
