@@ -63,10 +63,12 @@ export const getPaginatedActivities = async (req, res) => {
         emoji: row.emoji,
         label: label,
         activity: row.activity_type,
+        type_id: row.type_id,
         status: row.status,
         description: row.description,
         timestamp: `${new Date(row.timestamp * 1000).toISOString()}`,
         category: row.category || "Uncategorized",
+        category_id: row.category_id,
       };
     });
     res.status(200).json(formattedRows || []);
