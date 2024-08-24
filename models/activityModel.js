@@ -92,7 +92,8 @@ export const readActivitiesWithPagination = (limit, offset) => {
         activity_types.name AS activity_type,
         activity_types.start_label AS start_label,
         activity_types.end_label AS end_label,
-        categories.name AS category
+        categories.name AS category,
+        activity_types.emoji
       FROM activities
       JOIN activity_types ON activities.type_id = activity_types.id
       JOIN categories ON activity_types.category_id = categories.id

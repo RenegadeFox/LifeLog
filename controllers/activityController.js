@@ -60,6 +60,7 @@ export const getPaginatedActivities = async (req, res) => {
 
       return {
         id: row.id,
+        emoji: row.emoji,
         label: label,
         activity: row.activity_type,
         status: row.status,
