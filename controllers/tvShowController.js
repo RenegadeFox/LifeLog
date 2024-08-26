@@ -67,7 +67,8 @@ export const getAllTvShows = async (req, res) => {
   try {
     const allTvShows = await readAllTvShows();
 
-    res.status(200).json(allTvShows || []);
+    if (allTvShows) return res.status(200).json(allTvShows);
+    else return res.status(204).json([]);
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -111,16 +112,23 @@ export const editTvShowById = async (req, res) => {
 
   if (!title) return res.status(400).send("Missing title");
 
-  // Update the TV Show in the database
   try {
+    // Check if the TV show exists before updating it
     const oldTvShow = await readTvShowById(id);
     if (!oldTvShow)
       return res.status(404).send(`TV Show with ID "${id}" not found`);
 
+    // Check if another TV show with the same title already exists
+    const existingTvShow = await readTvShowByTitle(title);
+    if (existingTvShow)
+      return res.status(409).send(`TV Show "${title}" already exists.`);
+
     // Only update the fields that are provided in the request body
     const newTitle = title || oldTvShow.title;
 
+    // Update the TV show in the database
     const changes = await updateTvShowById(id, newTitle);
+
     return res.status(200).send({ changes });
   } catch (err) {
     return res.status(500).send(err.message);
@@ -131,12 +139,13 @@ export const editTvShowById = async (req, res) => {
 export const removeTvShowById = async (req, res) => {
   const { id } = req.params;
 
-  // Delete the TV Show from the database
   try {
+    // Check if the TV show exists before deleting it
     const tvShowToRemove = await readTvShowById(id);
     if (!tvShowToRemove)
       return res.status(404).send(`TV Show with ID "${id}" not found`);
 
+    // Delete the TV show from the database
     const changes = await deleteTvShowById(id);
 
     res.status(200).send({ changes });

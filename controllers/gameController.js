@@ -31,7 +31,8 @@ export const getAllGames = async (req, res) => {
   try {
     const allGames = await readAllGames();
 
-    res.status(200).json(allGames || []);
+    if (allGames) return res.status(200).json(allGames);
+    else return res.status(204).json([]);
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -72,18 +73,23 @@ export const editGameById = async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
 
+  // Ensure we have a name before proceeding
   if (!name) return res.status(400).send("Missing name");
 
   try {
     // Check if the game exists before updating it
-    const gameToEdit = await readGameById(id);
+    const oldGame = await readGameById(id);
+    if (!oldGame) return res.status(404).send(`Game with ID "${id}" not found`);
 
-    if (!gameToEdit)
-      return res.status(404).send(`Game with ID "${id}" not found`);
+    // Check if another game with the same name already exists
+    const existingGame = await readGameByName(name);
+    if (existingGame)
+      return res.status(409).send(`Game "${name}" already exists.`);
 
+    // Update the game in the database
     const changes = await updateGameById(id, name);
 
-    res.status(200).send(changes);
+    res.status(200).send({ changes });
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -94,14 +100,15 @@ export const removeGameById = async (req, res) => {
   const { id } = req.params;
 
   try {
+    // Check if the game exists before deleting it
     const gameToRemove = await readGameById(id);
-
     if (!gameToRemove)
       return res.status(404).send(`Game with ID "${id}" not found`);
 
+    // Delete the game from the database
     const changes = await deleteGameById(id);
 
-    res.status(200).send(changes);
+    res.status(200).send({ changes });
   } catch (err) {
     res.status(500).send(err.message);
   }

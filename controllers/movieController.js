@@ -67,7 +67,8 @@ export const getAllMovies = async (req, res) => {
   try {
     const allMovies = await readAllMovies();
 
-    res.status(200).json(allMovies || []);
+    if (allMovies) return res.status(200).json(allMovies);
+    else return res.status(204).json([]);
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -108,19 +109,30 @@ export const editMovieById = async (req, res) => {
   const { id } = req.params;
   const { title, watched } = req.body;
 
-  if (!title) return res.status(400).send("Missing title");
+  // Ensure we have a "title" or "watched" value
+  if (!title && !watched)
+    return res
+      .status(400)
+      .send(`"title" or "watched" is required but both were missing.`);
 
-  // Update the movie in the database
   try {
+    // Check if the movie exists before updating it
     const oldMovie = await readMovieById(id);
     if (!oldMovie)
       return res.status(404).send(`Movie with ID "${id}" not found`);
+
+    // Check if another movie with the same title already exists
+    const existingMovie = await readMovieByTitle(title);
+    if (existingMovie)
+      return res.status(409).send(`Movie "${title}" already exists.`);
 
     // Only update the fields that are provided in the request body
     const newTitle = title || oldMovie.title;
     const newWatched = watched || oldMovie.watched;
 
+    // Update the movie in the database
     const changes = await updateMovieById(id, newTitle, newWatched);
+
     return res.status(200).send({ changes });
   } catch (err) {
     return res.status(500).send(err.message);
@@ -131,12 +143,13 @@ export const editMovieById = async (req, res) => {
 export const removeMovieById = async (req, res) => {
   const { id } = req.params;
 
-  // Delete the movie from the database
   try {
+    // Check if the movie exists before deleting it
     const movieToRemove = await readMovieById(id);
     if (!movieToRemove)
       return res.status(404).send(`Movie with ID "${id}" not found`);
 
+    // Delete the movie from the database
     const changes = await deleteMovieById(id);
 
     res.status(200).send({ changes });
