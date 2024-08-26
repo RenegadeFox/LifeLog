@@ -44,6 +44,21 @@ export const readCategoryById = (id) => {
   });
 };
 
+// READ a single category from the database by it's name
+export const readCategoryByName = (name) => {
+  return new Promise((resolve, reject) => {
+    db.get(
+      `SELECT * FROM categories WHERE LOWER(name) = LOWER(?)`,
+      [name],
+      (err, row) => {
+        if (err) reject(err);
+
+        resolve(row);
+      }
+    );
+  });
+};
+
 // UPDATE an existing category in the database by its ID
 export const updateCategoryById = (id, name) => {
   return new Promise((resolve, reject) => {
