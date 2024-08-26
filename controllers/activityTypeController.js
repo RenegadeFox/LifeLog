@@ -16,14 +16,15 @@ export const addActivityType = async (req, res) => {
     try {
       const createdActivityTypeIds = await Promise.all(
         activityTypesToAdd.map(async (activityType) => {
-          const { name, toggle, start_label, end_label, category_id } =
+          const { name, toggle, start_label, end_label, category_id, emoji } =
             activityType;
           return await createActivityType(
             name,
             toggle,
             start_label,
             end_label,
-            category_id
+            category_id,
+            emoji
           );
         })
       );
@@ -33,7 +34,8 @@ export const addActivityType = async (req, res) => {
     }
   } else {
     // Request body is a single activity type to be added to the database
-    const { name, toggle, start_label, end_label, category_id } = req.body;
+    const { name, toggle, start_label, end_label, category_id, emoji } =
+      req.body;
 
     if (!name) return res.status(400).send("Missing name");
 
@@ -43,7 +45,8 @@ export const addActivityType = async (req, res) => {
         toggle,
         start_label,
         end_label,
-        category_id
+        category_id,
+        emoji
       );
 
       // TODO: Add a check to see if the activity type already exists in the database

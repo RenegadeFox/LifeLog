@@ -22,17 +22,19 @@ export const createActivityType = (
   toggle,
   startLabel,
   endLabel,
-  categoryId
+  categoryId,
+  emoji
 ) => {
   const newToggle = toggle || 0;
   const newStartLabel = startLabel || "";
   const newEndLabel = endLabel || "";
   const newCategoryId = categoryId || 2; // Default to 2 for "Uncategorized"
+  const newEmoji = emoji || "❓";
 
   return new Promise((resolve, reject) => {
     db.run(
-      `INSERT INTO activity_types (name, toggle, start_label, end_label, category_id) VALUES (?, ?, ?, ?, ?)`,
-      [name, newToggle, newStartLabel, newEndLabel, newCategoryId],
+      `INSERT INTO activity_types (name, toggle, start_label, end_label, category_id, emoji) VALUES (?, ?, ?, ?, ?, ?)`,
+      [name, newToggle, newStartLabel, newEndLabel, newCategoryId, emoji],
       function (err) {
         if (err) reject(err);
 
