@@ -102,10 +102,12 @@ export const readActivityTypeById = (id) => {
       `SELECT 
         activity_types.id,
         activity_types.name,
+        activity_types.emoji,
         activity_types.toggle,
         activity_types.start_label,
         activity_types.end_label,
-        categories.name as category
+        categories.name as category,
+        categories.id as category_id
       FROM activity_types
       JOIN categories ON activity_types.category_id = categories.id
       WHERE activity_types.id = ?`,
@@ -124,15 +126,15 @@ export const updateActivityTypeById = (
   id,
   name,
   toggle,
-  startLabel,
-  endLabel,
-  categoryId,
+  start_label,
+  end_label,
+  category_id,
   emoji
 ) => {
   return new Promise((resolve, reject) => {
     db.run(
       `UPDATE activity_types SET name = ?, toggle = ?, start_label = ?, end_label = ?, category_id = ?, emoji = ? WHERE id = ?`,
-      [name, toggle, startLabel, endLabel, categoryId, emoji, id],
+      [name, toggle, start_label, end_label, category_id, emoji, id],
       function (err) {
         if (err) reject(err);
 
