@@ -34,7 +34,7 @@ export const createActivityType = (
   return new Promise((resolve, reject) => {
     db.run(
       `INSERT INTO activity_types (name, toggle, start_label, end_label, category_id, emoji) VALUES (?, ?, ?, ?, ?, ?)`,
-      [name, newToggle, newStartLabel, newEndLabel, newCategoryId, emoji],
+      [name, newToggle, newStartLabel, newEndLabel, newCategoryId, newEmoji],
       function (err) {
         if (err) reject(err);
 
@@ -126,12 +126,13 @@ export const updateActivityTypeById = (
   toggle,
   startLabel,
   endLabel,
-  categoryId
+  categoryId,
+  emoji
 ) => {
   return new Promise((resolve, reject) => {
     db.run(
-      `UPDATE activity_types SET name = ?, toggle = ?, start_label = ?, end_label = ?, category_id = ? WHERE id = ?`,
-      [name, toggle, startLabel, endLabel, categoryId, id],
+      `UPDATE activity_types SET name = ?, toggle = ?, start_label = ?, end_label = ?, category_id = ?, emoji = ? WHERE id = ?`,
+      [name, toggle, startLabel, endLabel, categoryId, emoji, id],
       function (err) {
         if (err) reject(err);
 

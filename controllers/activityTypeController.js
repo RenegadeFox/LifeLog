@@ -8,33 +8,7 @@ import {
 
 // ADD a new activity type in the database
 export const addActivityType = async (req, res) => {
-  const isMultiple = Array.isArray(req.body);
-
-  if (isMultiple) {
-    // Request body is an array of activity types to be added to the database
-    const activityTypesToAdd = req.body;
-    try {
-      const createdActivityTypeIds = await Promise.all(
-        activityTypesToAdd.map(async (activityType) => {
-          const { name, toggle, start_label, end_label, category_id, emoji } =
-            activityType;
-          return await createActivityType(
-            name,
-            toggle,
-            start_label,
-            end_label,
-            category_id,
-            emoji
-          );
-        })
-      );
-      res.status(201).send(createdActivityTypeIds);
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  } else {
-    // Request body is a single activity type to be added to the database
-    const { name, toggle, start_label, end_label, category_id, emoji } =
+  const { name, toggle, start_label, end_label, category_id, emoji } =
       req.body;
 
     if (!name) return res.status(400).send("Missing name");
@@ -55,7 +29,6 @@ export const addActivityType = async (req, res) => {
     } catch (err) {
       res.status(500).send(err.message);
     }
-  }
 };
 
 // GET all activity types from the database
@@ -88,10 +61,10 @@ export const getActivityTypeById = async (req, res) => {
 // EDIT a single activity type from the database by its ID
 export const editActivityTypeById = async (req, res) => {
   const { id } = req.params;
-  const { name, toggle, start_label, end_label, category_id } = req.body;
+  const { name, toggle, start_label, end_label, category_id, emoji } = req.body;
 
   // Check if no fields are provided in the request body
-  if (!name && !toggle && !start_label && !end_label && !category_id)
+  if (!name && !toggle && !start_label && !end_label && !category_id && !emoji)
     return res.status(400).send("No fields provided");
 
   // Update the activity type in the database
@@ -106,6 +79,7 @@ export const editActivityTypeById = async (req, res) => {
     const newStartLabel = start_label || oldActivityType.start_label;
     const newEndLabel = end_label || oldActivityType.end_label;
     const newCategoryId = category_id || oldActivityType.category_id;
+    const newEmoji = emoji || oldActivityType.emoji || "❓";
 
     const changes = await updateActivityTypeById(
       id,
@@ -113,7 +87,8 @@ export const editActivityTypeById = async (req, res) => {
       newToggle,
       newStartLabel,
       newEndLabel,
-      newCategoryId
+      newCategoryId,
+      newEmoji
     );
     return res.status(200).send({ changes });
   } catch (err) {
