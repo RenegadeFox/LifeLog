@@ -63,6 +63,7 @@ export const readLastActivityByType = (type_id) => {
         activity_types.toggle,
         activities.description,
         activities.timestamp,
+        strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch')) AS formatted_date,
         categories.name AS category,
         categories.id AS category_id,
         activity_types.emoji
@@ -112,15 +113,17 @@ export const readActivitiesWithPagination = (limit, offset) => {
 };
 
 // READ all activities of a specific activity_type with pagination and limiting the number of results
-export const readActivitiesByTypeWithPagination = (type_id, limit, offset) => {
+export const readActivitiesByTypeWithPagination = (type_id, limit, offset, start_date, end_date) => {
   return new Promise((resolve, reject) => {
     db.all(
       `SELECT
         activities.id,
         activities.description,
         activities.timestamp,
+        strftime('%Y-%m-%d', datetime(timestamp, 'unixepoch')) AS formatted_date,
         activities.status,
         activities.type_id AS type_id,
+        activity_types.emoji AS emoji,
         activity_types.name AS activity_type,
         activity_types.start_label AS start_label,
         activity_types.end_label AS end_label,
@@ -130,6 +133,7 @@ export const readActivitiesByTypeWithPagination = (type_id, limit, offset) => {
       JOIN activity_types ON activities.type_id = activity_types.id
       JOIN categories ON activity_types.category_id = categories.id
       WHERE type_id = ?
+      ${start_date && end_date ? `AND datetime(timestamp, 'unixepoch') BETWEEN '${start_date}' AND '${end_date}'` : ""}
       ORDER BY activities.timestamp DESC
       LIMIT ? OFFSET ?`,
       [type_id, limit, offset],

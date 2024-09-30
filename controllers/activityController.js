@@ -82,13 +82,17 @@ export const getActivitiesByTypeWithPagination = async (req, res) => {
   const { type_id } = req.params;
   const limit = parseInt(req.query.limit, 10) || 10;
   const page = parseInt(req.query.page, 10) || 1;
+  const start_date = req.query.start_date || undefined;
+  const end_date = req.query.end_date || undefined;
   const offset = (page - 1) * limit;
 
   try {
     const rows = await readActivitiesByTypeWithPagination(
       type_id,
       limit,
-      offset
+      offset,
+      start_date,
+      end_date
     );
     const formattedRows = rows.map((row) => {
       let label = "";
