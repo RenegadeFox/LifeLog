@@ -154,11 +154,14 @@ export const getMenuItemsV2 = async (req, res) => {
             toggle: item.toggle,
             description: "",
             timestamp: 0,
-            category: category.name,
-            category_id: category.id,
+            category: item.category,
+            category_id: item.category_id,
             emoji: item.emoji,
             label: item.toggle ? item.start_label : item.name,
           };
+        } else if (lastActivity.status === "started") {
+          STARTED_ITEMS.push(lastActivity);
+          return false;
         }
 
         return lastActivity;
@@ -168,10 +171,14 @@ export const getMenuItemsV2 = async (req, res) => {
     res.status(200).json({
       started: STARTED_ITEMS,
       categories: categoriesAndItems,
-      uncategorized: formattedUncatItems,
+      uncategorized: formattedUncatItems.filter((item) => item !== false),
     });
   } catch (err) {
-    res.status(500).send(err.message);
+    res.status(500).json({
+      status: "error",
+      message: err.message,
+    })
+    console.error(err);
   }
 };
 
