@@ -16,15 +16,18 @@ const PORT = 3000;
 app.use(apiKeyAuth);
 
 app.use(bodyParser.json());
-app.use("/activities", activityRoutes);
-app.use("/activity-types", activityTypeRoutes);
-app.use("/categories", categoryRoutes);
-app.use("/games", gameRoutes);
-app.use("/movies", movieRoutes);
-app.use("/tv-shows", tvShowRoutes);
+
+// API Routes
+// nginx automatically routes the `api` subdomain to the `/api` path
+app.use("/api/activities", activityRoutes);
+app.use("/api/activity-types", activityTypeRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/games", gameRoutes);
+app.use("/api/movies", movieRoutes);
+app.use("/api/tv-shows", tvShowRoutes);
 
 // Route specifically for the menu items
-app.use("/menu-items", uiRoutes);
+app.use("/api/menu-items", uiRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
